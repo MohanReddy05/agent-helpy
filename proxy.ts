@@ -15,14 +15,15 @@ export default withAuth(
     pages: {
       signIn: "/sign-in",
     },
-    secret: process.env.NEXTAUTH_SECRET || "default-development-secret-change-in-env",
-  }
+    secret:
+      process.env.NEXTAUTH_SECRET || "default-development-secret-change-in-env",
+  },
 );
 
 // Define which routes to protect/restrict from unauthorized users
 export const config = {
   matcher: [
-    "/protected/:path*",
+    "/workspace/:path*",
     "/admin/:path*",
     "/profile/:path*",
     "/settings/:path*",
