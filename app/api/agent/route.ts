@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { agentConfig, db } from "@/db";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, and } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,9 +47,23 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
+  const agentId = req.nextUrl.searchParams.get("agentId");
 
   if (!session?.user?.email) {
     return NextResponse.json({ message: "Unauthorized!" }, { status: 401 });
+  }
+
+  if (agentId) {
+    const getAgent = await db
+      .select()
+      .from(agentConfig)
+      .where(
+        and(
+          eq(agentConfig.userEmail, session?.user?.email),
+          eq(agentConfig.agentId, agentId),
+        ),
+      );
+    return NextResponse.json(getAgent[0]);
   }
 
   const getAgents = await db
