@@ -74,3 +74,41 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json(getAgents);
 }
+
+export async function PUT(req: NextRequest) {
+  const { agentId, name, description, agentImage } = await req.json();
+  const session = await getServerSession(authOptions);
+
+  try {
+    if (!session?.user?.email) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (agentId) {
+      const UpdateAgent = await db
+        .update(agentConfig)
+        .set({
+          name,
+          description,
+          agentImage,
+        })
+        .where(
+          and(
+            eq(agentConfig.userEmail, session?.user?.email),
+            eq(agentConfig.agentId, agentId),
+          ),
+        )
+        .returning();
+    }
+
+    return NextResponse.json(
+      { message: "Agent updated successfully!" },
+      { status: 200 },
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { message: `Internal Server Error ${error}` },
+      { status: 501 },
+    );
+  }
+}

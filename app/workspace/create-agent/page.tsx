@@ -7,21 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
-
-const avatars = [
-  "Felix",
-  "s3asel31",
-  "cx5b7b0x",
-  "rwxgma65",
-  "ishyne73",
-  "csuzdzj7",
-  "6nra9437",
-  "58w8rxfd",
-];
+import { AvailableAvatars } from "@/lib/Avatars";
 
 function CreateAgent() {
   const router = useRouter();
-
+  const avatars = AvailableAvatars;
   const [avatarIndex, setAvatarIndex] = useState(0);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
