@@ -1,8 +1,14 @@
 import React from "react";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 import AppSidebar from "@/components/custom/workspace/AppSidebar";
 import { AgentProvider } from "@/components/custom/workspace/AgentProvider";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-function WorkspaceLayout({ children }: { children: React.ReactNode }) {
+async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) redirect("/sign-in?callbackUrl=%2Fworkspace");
+
   return (
     <AgentProvider>
       <div className="flex min-h-screen bg-slate-50">

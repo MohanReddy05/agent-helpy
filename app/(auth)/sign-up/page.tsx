@@ -1,13 +1,19 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
-import { signIn } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState, Suspense, useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 function SignUpContent() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
+  const router = useRouter();
+  const { status } = useSession();
+  const callbackUrl = searchParams.get('callbackUrl') || '/workspace';
+
+  useEffect(() => {
+    if (status === 'authenticated') router.replace('/workspace');
+  }, [router, status]);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 

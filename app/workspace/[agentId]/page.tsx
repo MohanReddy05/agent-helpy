@@ -4,18 +4,21 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import AgentConfigPanel from "@/components/custom/agentspace/AgentConfigPanel";
-import ChatPanel from "@/components/custom/agentspace/ChatPanel";
-import type { agent } from "@/db";
+
 import { AgentConfigContext } from "@/context/AgentConfigContext";
+import ChatPanel from "@/components/custom/agentspace/ChatPanel";
+import { Agent } from "@/db";
 
 export default function AgentSpace() {
   const params = useParams<{ agentId: string }>();
-  const [agentConfig, setAgentConfig] = useState<agent | null>();
+  const [agentConfig, setAgentConfig] = useState<Agent | null>();
   const [configurationVisible, setConfigurationVisible] = useState(true);
 
   useEffect(() => {
     const loadAgent = async () => {
-      const result = await axios.get<agent>(`/api/agent?agentId=${params.agentId}`);
+      const result = await axios.get<Agent>(
+        `/api/agent?agentId=${params.agentId}`,
+      );
       setAgentConfig(result.data);
     };
 

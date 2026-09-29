@@ -1,9 +1,70 @@
-import type { RefObject } from "react";
-import { Sparkles } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import type { ChatMessage } from "./types";
+import { Loader2 } from "lucide-react";
+import type { ChatMessage } from "@/lib/types";
+import { AgentResponseView } from "./AgentResponseView";
 
-export function ChatMessages({ messages, bottomRef }: { messages: ChatMessage[]; bottomRef: RefObject<HTMLDivElement | null> }) {
-  return <ScrollArea className="min-h-0 flex-1"><div className="px-6 py-8 md:px-10"><div className="mx-auto flex max-w-2xl flex-col gap-7"><div className="flex justify-center"><span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium text-slate-500">Today</span></div>{messages.map((message, index) => message.role === "assistant" ? <div key={index} className="flex items-start gap-3"><Avatar className="mt-0.5 size-8 rounded-lg bg-indigo-50 text-indigo-700"><AvatarFallback className="rounded-lg bg-indigo-50 text-indigo-700"><Sparkles className="size-4" /></AvatarFallback></Avatar><div className="max-w-[82%]"><div className="rounded-2xl rounded-tl-md border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">{message.text}</div><p className="mt-1.5 text-[11px] text-slate-400">Orbit · {message.time}</p></div></div> : <div key={index} className="flex justify-end"><div className="max-w-[78%]"><div className="rounded-2xl rounded-tr-md bg-indigo-600 px-4 py-3 text-sm leading-6 text-white">{message.text}</div><p className="mt-1.5 text-right text-[11px] text-slate-400">You · {message.time}</p></div></div>)}<div ref={bottomRef} /></div></div></ScrollArea>;
+export function ChatMessages({
+  messages,
+  bottomRef,
+  isLoading,
+  agentId,
+}: {
+  messages: ChatMessage[];
+  bottomRef: React.RefObject<HTMLDivElement>;
+  isLoading: boolean;
+  agentId: string;
+}) {
+  return (
+    <div className="flex-1 overflow-y-auto bg-slate-50/50 p-6">
+      <div className="flex flex-col gap-6">
+        {messages.map((msg, idx) => {
+          const displayText = [msg.text, msg.content, msg.response?.content].find(
+            (text): text is string =>
+              typeof text === "string" && text.trim().length > 0,
+          );
+          if (!displayText) return null;
+
+          const isUser = msg.role === "user";
+          return (
+            <div
+              key={msg.id || idx}
+              className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
+            >
+              <div
+                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                  isUser
+                    ? "bg-blue-600 text-white rounded-br-none"
+                    : "bg-white text-slate-800 border border-slate-200 rounded-bl-none"
+                }`}
+              >
+                <p className="whitespace-pre-wrap leading-relaxed">
+                  {displayText}
+                </p>
+
+                {/* Render Generative UI Cards for Agent messages */}
+                {!isUser && msg.response && (
+                  <AgentResponseView
+                    response={msg.response}
+                    agentId={agentId}
+                  />
+                )}
+              </div>
+              <span className="mt-1 text-[10px] text-slate-400 font-medium">
+                {msg.time}
+              </span>
+            </div>
+          );
+        })}
+
+        {isLoading && (
+          <div className="flex max-w-[85%] items-center gap-2 self-start rounded-2xl rounded-bl-none border border-slate-200 bg-white px-4 py-3 shadow-sm">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+            <span className="text-xs font-medium text-slate-500">
+              Agent is thinking...
+            </span>
+          </div>
+        )}
+        <div ref={bottomRef} className="h-1" />
+      </div>
+    </div>
+  );
 }

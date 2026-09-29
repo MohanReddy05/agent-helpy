@@ -14,12 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { AgentConfigContext } from "@/context/AgentConfigContext";
 import { AgentSettingsContent } from "./config/AgentSettingsContent";
 import { ScheduleContent } from "./config/ScheduleContent";
@@ -196,22 +190,15 @@ export default function AgentConfigPanel({ onHide }: { onHide: () => void }) {
               />
             </div>
 
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    aria-label="Shuffle avatar"
-                    onClick={shuffleAvatar}
-                  >
-                    <Shuffle className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-
-                <TooltipContent>Shuffle avatar</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Shuffle avatar"
+              title="Shuffle avatar"
+              onClick={shuffleAvatar}
+            >
+              <Shuffle className="size-4" />
+            </Button>
           </div>
         </section>
 

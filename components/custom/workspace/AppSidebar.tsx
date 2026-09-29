@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import {
   Bot,
   BriefcaseBusiness,
@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Menu,
   Plus,
+  LogOut,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,10 @@ function AppSidebar() {
 
   const navigate = (path: string) => {
     router.push(path);
+  };
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/sign-in" });
   };
 
   return (
@@ -209,17 +214,43 @@ function AppSidebar() {
           )}
 
           {!collapsed && (
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-slate-800">
-                {userName}
-              </span>
+            <>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium text-slate-800">
+                  {userName}
+                </span>
 
-              <span className="block truncate text-xs text-slate-500">
-                Personal workspace
+                <span className="block truncate text-xs text-slate-500">
+                  Personal workspace
+                </span>
               </span>
-            </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="size-8 shrink-0 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                aria-label="Log out"
+                title="Log out"
+              >
+                <LogOut className="size-4" />
+              </Button>
+            </>
           )}
         </div>
+        {collapsed && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="mx-auto mt-2 size-8 text-slate-500 hover:bg-red-50 hover:text-red-600"
+            aria-label="Log out"
+            title="Log out"
+          >
+            <LogOut className="size-4" />
+          </Button>
+        )}
       </div>
     </aside>
   );

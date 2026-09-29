@@ -4,9 +4,9 @@ import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toast";
 
 export const metadata: Metadata = {
-  title: "Next.js Premium Startup Boilerplate",
+  title: "Helpy | Your personal AI workspace",
   description:
-    "Created using the ultimate interactive Next.js stack generator CLI.",
+    "Create helpful AI agents and bring your conversations into one thoughtful workspace.",
 };
 
 export default function RootLayout({
