@@ -112,7 +112,7 @@ export default function AgentConfigPanel({ onHide }: { onHide: () => void }) {
   const tabContent: Record<TabId, React.ReactNode> = {
     settings: <SettingsContent onDirty={() => setIsDirty(true)} />,
     tools: <ToolsContent />,
-    schedule: <ScheduleContent />,
+    schedule: <ScheduleContent agentId={agentConfig?.agentId} />,
     agent: <AgentSettingsContent agentName={agentName} />,
   };
 

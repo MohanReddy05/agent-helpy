@@ -1,113 +1,128 @@
-import { useState } from "react";
-import { CalendarClock, Check, ChevronDown, Clock3, MessageCircle } from "lucide-react";
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import axios from "axios";
+import { CalendarClock, Clock3, Loader2, Pause, Play, Plus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SectionHeading } from "./SectionHeading";
 
-type RunMode = "manual" | "recurring" | "specific";
+type Routine = {
+  id: number;
+  name: string;
+  goal: string;
+  schedule: { frequency: "once" | "daily" | "weekly" | "monthly"; time: string; days?: string[] };
+  nextRunAt: string | null;
+  isActive: boolean | null;
+};
 
-const frequencies = ["Every day", "Weekdays", "Every week", "Every month"];
-const days = [
-  { id: "mon", label: "M", name: "Monday" },
-  { id: "tue", label: "T", name: "Tuesday" },
-  { id: "wed", label: "W", name: "Wednesday" },
-  { id: "thu", label: "T", name: "Thursday" },
-  { id: "fri", label: "F", name: "Friday" },
-  { id: "sat", label: "S", name: "Saturday" },
-  { id: "sun", label: "S", name: "Sunday" },
+const weekdays = [
+  ["mon", "Monday"], ["tue", "Tuesday"], ["wed", "Wednesday"],
+  ["thu", "Thursday"], ["fri", "Friday"], ["sat", "Saturday"], ["sun", "Sunday"],
 ];
 
-const runModes = [
-  { id: "manual" as const, icon: MessageCircle, title: "Manual", desc: "Run only when you ask" },
-  { id: "recurring" as const, icon: Clock3, title: "Recurring", desc: "Run on a repeating schedule" },
-  { id: "specific" as const, icon: CalendarClock, title: "Specific time", desc: "Choose a one-time run" },
-];
-
-function formatTime(value: string) {
-  const [hour, minute] = value.split(":").map(Number);
-  const period = hour >= 12 ? "PM" : "AM";
-  return `${hour % 12 === 0 ? 12 : hour % 12}:${String(minute).padStart(2, "0")} ${period}`;
-}
-
-export function ScheduleContent() {
-  const [mode, setMode] = useState<RunMode>("recurring");
-  const [frequency, setFrequency] = useState(frequencies[0]);
-  const [showFrequencyMenu, setShowFrequencyMenu] = useState(false);
+export function ScheduleContent({ agentId }: { agentId?: string }) {
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [name, setName] = useState("");
+  const [goal, setGoal] = useState("");
+  const [frequency, setFrequency] = useState<Routine["schedule"]["frequency"]>("daily");
   const [time, setTime] = useState("08:00");
-  const [activeDays, setActiveDays] = useState<Set<string>>(new Set(["mon", "tue", "wed", "thu", "fri"]));
+  const [days, setDays] = useState<string[]>(["mon", "tue", "wed", "thu", "fri"]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-  const toggleDay = (id: string) => {
-    setActiveDays((previous) => {
-      const next = new Set(previous);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+  const load = useCallback(async () => {
+    if (!agentId) return;
+    try {
+      const result = await axios.get("/api/routine", { params: { agentId } });
+      setRoutines(result.data.routines ?? []);
+    } catch {
+      setError("Could not load this agent's schedules.");
+    }
+  }, [agentId]);
+
+  useEffect(() => { void load(); }, [load]);
+
+  const createSchedule = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!agentId || !name.trim() || !goal.trim()) return;
+    setBusy(true);
+    setError("");
+    try {
+      await axios.post("/api/routine", {
+        agentId,
+        name,
+        goal,
+        instructions: goal,
+        schedule: { frequency, time, days: frequency === "weekly" ? days : [] },
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+      setName("");
+      setGoal("");
+      await load();
+    } catch (cause) {
+      setError(axios.isAxiosError(cause) ? cause.response?.data?.error ?? "Could not save the schedule." : "Could not save the schedule.");
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const summary = mode === "manual"
-    ? "Runs only when you ask"
-    : mode === "specific"
-      ? `Runs once at ${formatTime(time)}`
-      : activeDays.size === 0
-        ? "Pick at least one day"
-        : `${frequency} at ${formatTime(time)}`;
+  const toggle = async (item: Routine) => {
+    setBusy(true);
+    try {
+      await axios.patch("/api/routine", { id: item.id, isActive: !item.isActive });
+      await load();
+    } catch {
+      setError("Could not update the schedule.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async (item: Routine) => {
+    setBusy(true);
+    try {
+      await axios.delete("/api/routine", { params: { id: item.id } });
+      await load();
+    } catch {
+      setError("Could not remove the schedule.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <section>
-        <SectionHeading title="When should Orbit run?" detail="Choose how and when your agent should execute." />
-        <div role="radiogroup" aria-label="Run mode" className="space-y-2">
-          {runModes.map(({ id, icon: Icon, title, desc }) => {
-            const selected = mode === id;
-            return (
-              <button key={id} type="button" role="radio" aria-checked={selected} onClick={() => setMode(id)} className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors ${selected ? "border-indigo-200 bg-indigo-50/50" : "border-slate-200 bg-white hover:border-slate-300"}`}>
-                <span className={`flex size-9 items-center justify-center rounded-lg ${selected ? "bg-white text-indigo-600" : "bg-slate-100 text-slate-600"}`}><Icon className="size-4" /></span>
-                <span className="flex-1"><span className="block text-sm font-medium text-slate-800">{title}</span><span className="text-xs text-slate-500">{desc}</span></span>
-                <span className={`flex size-4 items-center justify-center rounded-full border ${selected ? "border-[5px] border-indigo-600" : "border-slate-300"}`} />
-              </button>
-            );
-          })}
-        </div>
+        <SectionHeading title="Agent schedule" detail="Create and manage scheduled tasks for this agent." />
+        <form onSubmit={createSchedule} className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+          <div className="space-y-2"><Label htmlFor="schedule-name">Schedule name</Label><Input id="schedule-name" required maxLength={100} value={name} onChange={(event) => setName(event.target.value)} placeholder="Morning inbox summary" /></div>
+          <div className="space-y-2"><Label htmlFor="schedule-goal">Task instructions</Label><textarea id="schedule-goal" required maxLength={2000} value={goal} onChange={(event) => setGoal(event.target.value)} placeholder="Summarize new messages and highlight anything urgent." className="min-h-24 w-full resize-y rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2"><Label htmlFor="schedule-frequency">Frequency</Label><select id="schedule-frequency" value={frequency} onChange={(event) => setFrequency(event.target.value as Routine["schedule"]["frequency"])} className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"><option value="once">Once</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
+            <div className="space-y-2"><Label htmlFor="schedule-time">Local time</Label><Input id="schedule-time" type="time" required value={time} onChange={(event) => setTime(event.target.value)} /></div>
+          </div>
+          {frequency === "weekly" && <fieldset className="space-y-2"><legend className="text-sm font-medium text-slate-700">Run on</legend><div className="flex flex-wrap gap-2">{weekdays.map(([key, label]) => <label key={key} className="flex items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs"><input type="checkbox" checked={days.includes(key)} onChange={() => setDays((current) => current.includes(key) ? current.filter((day) => day !== key) : [...current, key])} />{label}</label>)}</div></fieldset>}
+          {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
+          <Button type="submit" disabled={busy || !agentId || !name.trim() || !goal.trim()} className="w-full"><Plus className="size-4" />Add schedule</Button>
+        </form>
       </section>
 
-      {mode !== "manual" && (
-        <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-          {mode === "recurring" && (
-            <div className="relative space-y-2">
-              <Label>Frequency</Label>
-              <button type="button" onClick={() => setShowFrequencyMenu((visible) => !visible)} aria-expanded={showFrequencyMenu} className="flex h-10 w-full items-center justify-between rounded-lg border border-slate-200 px-3 text-sm text-slate-800">
-                {frequency}<ChevronDown className={`size-4 text-slate-400 transition-transform ${showFrequencyMenu ? "rotate-180" : ""}`} />
-              </button>
-              {showFrequencyMenu && (
-                <div className="absolute inset-x-0 top-full z-10 mt-1 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
-                  {frequencies.map((option) => (
-                    <button key={option} type="button" onClick={() => { setFrequency(option); setShowFrequencyMenu(false); }} className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50">
-                      {option}{option === frequency && <Check className="size-4 text-indigo-600" />}
-                    </button>
-                  ))}
-                </div>
-              )}
+      <section className="space-y-3">
+        <h3 className="text-sm font-semibold text-slate-800">Saved schedules</h3>
+        {routines.map((item) => (
+          <article key={item.id} className="rounded-xl border border-slate-200 bg-white p-3">
+            <div className="flex items-start gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"><CalendarClock className="size-4" /></span>
+              <div className="min-w-0 flex-1"><p className="text-sm font-medium text-slate-800">{item.name}</p><p className="mt-0.5 line-clamp-2 text-xs text-slate-500">{item.goal}</p><p className="mt-2 flex items-center gap-1 text-[11px] text-slate-500"><Clock3 className="size-3" />{item.schedule.frequency} at {item.schedule.time}{item.nextRunAt ? ` · Next ${new Date(item.nextRunAt).toLocaleString()}` : ""}</p></div>
+              <button type="button" disabled={busy} title={item.isActive ? "Pause schedule" : "Resume schedule"} onClick={() => void toggle(item)} className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100">{item.isActive ? <Pause className="size-4" /> : <Play className="size-4" />}</button>
+              <button type="button" disabled={busy} title="Delete schedule" onClick={() => void remove(item)} className="rounded-md p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600"><Trash2 className="size-4" /></button>
             </div>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="run-time">Time</Label>
-            <div className="flex h-10 items-center justify-between rounded-lg border border-slate-200 px-3 text-sm text-slate-800">
-              <input id="run-time" type="time" value={time} onChange={(event) => setTime(event.target.value)} className="w-full bg-transparent outline-none [&::-webkit-calendar-picker-indicator]:hidden" />
-              <Clock3 className="size-4 shrink-0 text-slate-400" />
-            </div>
-          </div>
-          {mode === "recurring" && (
-            <div className="space-y-2"><Label>Days</Label><div className="flex justify-between gap-1">
-              {days.map(({ id, label, name }) => {
-                const active = activeDays.has(id);
-                return <button key={id} type="button" aria-pressed={active} aria-label={name} onClick={() => toggleDay(id)} className={`flex size-8 items-center justify-center rounded-full text-xs font-medium transition-colors ${active ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>{label}</button>;
-              })}
-            </div></div>
-          )}
-        </section>
-      )}
-      <div className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-medium ${mode === "recurring" && activeDays.size === 0 ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>
-        <Clock3 className="size-4" />{summary}
-      </div>
+          </article>
+        ))}
+        {!routines.length && <p className="rounded-xl border border-dashed border-slate-300 px-4 py-6 text-center text-xs text-slate-500">No scheduled tasks yet.</p>}
+      </section>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { Calendar, CheckCircle2, ExternalLink } from "lucide-react";
 import axios from "axios";
+import { useState } from "react";
 import { AgentResponse } from "@/lib/types";
 
 export function AgentResponseView({
@@ -12,34 +13,46 @@ export function AgentResponseView({
   agentId: string;
 }) {
   const { type, routine, suggestedTools } = response;
+  const [savingRoutine, setSavingRoutine] = useState(false);
+  const [routineSaved, setRoutineSaved] = useState(false);
+  const [actionError, setActionError] = useState("");
 
   const handleConnectTool = async (slug: string) => {
     try {
+      setActionError("");
       // Calls your Composio connect endpoint
       const res = await axios.post("/api/tools/connect", { agentId, slug });
       if (res.data.redirectUrl) {
-        window.open(res.data.redirectUrl, "_blank", "width=600,height=700");
+        window.location.assign(res.data.redirectUrl);
       }
     } catch (err) {
       console.error("Failed to connect tool", err);
+      setActionError("Could not create a connection link. Try again from Tools or Marketplace.");
     }
   };
 
   const handleCreateRoutine = async () => {
-    if (!routine) return;
+    if (!routine || savingRoutine || routineSaved) return;
+    setSavingRoutine(true);
+    setActionError("");
     try {
-      // Saves the routine to Drizzle for Inngest scheduling
-      await axios.post("/api/routine", { agentId, ...routine });
-      alert(
-        "Routine successfully scheduled! It will now run in the background.",
-      );
+      await axios.post("/api/routine", {
+        agentId,
+        ...routine,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+      setRoutineSaved(true);
     } catch (err) {
       console.error("Failed to create routine", err);
+      setActionError(axios.isAxiosError(err) ? err.response?.data?.error ?? "Could not save this schedule." : "Could not save this schedule.");
+    } finally {
+      setSavingRoutine(false);
     }
   };
 
   return (
     <div className="mt-3 flex flex-col gap-3">
+      {actionError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-700">{actionError}</p>}
       {/* Tool Suggestion Card */}
       {suggestedTools && suggestedTools.length > 0 && (
         <div className="flex flex-col gap-2">
@@ -89,11 +102,12 @@ export function AgentResponseView({
           </div>
 
           <button
-            onClick={handleCreateRoutine}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-xs font-medium text-white hover:bg-blue-700 shadow-sm"
+            onClick={() => void handleCreateRoutine()}
+            disabled={savingRoutine || routineSaved}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <CheckCircle2 className="h-4 w-4" />
-            Confirm & Schedule Routine
+            {routineSaved ? "Schedule saved" : savingRoutine ? "Saving schedule…" : "Confirm & Schedule Routine"}
           </button>
         </div>
       )}

@@ -3,8 +3,8 @@ export const CHAT_MODELS = [
   { id: "gpt-5.6-luna", label: "GPT-5.6 Luna · fast", provider: "openai" },
   { id: "gpt-5.6-terra", label: "GPT-5.6 Terra · balanced", provider: "openai" },
   { id: "gpt-5.6", label: "GPT-5.6 · advanced", provider: "openai" },
-  { id: "gemini-3.1-flash-lite", label: "Gemini 3.1 Flash-Lite", provider: "google" },
-  { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash", provider: "google" },
+  { id: "gemini-3.8-flash", label: "Gemini 3.8 Flash", provider: "google" },
+  { id: "gemini-3.5-flash-lite", label: "Gemini 3.5 Flash-Lite", provider: "google" },
 ] as const;
 
 export type ChatModel = (typeof CHAT_MODELS)[number]["id"];

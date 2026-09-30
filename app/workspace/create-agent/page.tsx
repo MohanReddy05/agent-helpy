@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Loader, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 import { AvailableAvatars } from "@/lib/Avatars";
 
+type ToolkitOption = { slug: string; name: string; connected: boolean };
+
 function CreateAgent() {
   const router = useRouter();
   const avatars = AvailableAvatars;
@@ -16,6 +18,16 @@ function CreateAgent() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [toolkits, setToolkits] = useState<ToolkitOption[]>([]);
+  const [selectedTools, setSelectedTools] = useState<string[]>([]);
+
+  useEffect(() => {
+    axios.get("/api/tools").then((result) => {
+      const available: ToolkitOption[] = result.data.tools ?? [];
+      setToolkits(available);
+      setSelectedTools(available.filter((tool) => tool.connected).map((tool) => tool.slug));
+    }).catch(() => setToolkits([]));
+  }, []);
 
   // Current avatar seed
   const avatarSeed = avatars[avatarIndex];
@@ -60,6 +72,7 @@ function CreateAgent() {
         name: name.trim(),
         description: description.trim(),
         agentImage: avatarImage,
+        tools: selectedTools,
       });
 
       console.log("Agent created:", result.data);
@@ -84,8 +97,7 @@ function CreateAgent() {
           </h1>
 
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-            Setup your AI Agent by choosing an avatar, name, and description.
-            You can configure its tools and behavior later.
+            Set up an AI agent with its own instructions and selected tools.
           </p>
         </header>
 
@@ -177,6 +189,29 @@ function CreateAgent() {
                 disabled={isLoading}
               />
             </div>
+
+            <fieldset className="space-y-3">
+              <legend className="text-sm font-medium text-slate-800">Agent tools <span className="font-normal text-slate-400">(optional)</span></legend>
+              <p className="text-xs leading-5 text-slate-500">Choose which connected apps this agent can use. These choices are separate for each agent and do not change your marketplace connections.</p>
+              {toolkits.length === 0 ? (
+                <p className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">No tools are available. Add tools to the catalog and connect them in the marketplace.</p>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {toolkits.map((tool) => {
+                    const selected = selectedTools.includes(tool.slug);
+                    return (
+                      <label key={tool.slug} className={`flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 ${selected ? "border-indigo-300 bg-indigo-50/60" : "border-slate-200 bg-white"}`}>
+                        <input type="checkbox" checked={selected} onChange={() => setSelectedTools((current) => selected ? current.filter((slug) => slug !== tool.slug) : [...current, tool.slug])} className="mt-0.5 accent-indigo-600" />
+                        <span className="min-w-0">
+                          <span className="block text-xs font-medium text-slate-800">{tool.name}</span>
+                          <span className={`mt-0.5 block text-[10px] ${tool.connected ? "text-emerald-700" : "text-slate-500"}`}>{tool.connected ? "Connected in marketplace" : "Connect later from Marketplace or Tools"}</span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </fieldset>
           </div>
 
           {/* Buttons */}

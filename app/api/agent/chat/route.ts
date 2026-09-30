@@ -6,6 +6,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { executeOpenAIAgentChat } from "@/lib/openai/MyAgent";
 import { executeGoogleAgentChat } from "@/lib/googleAI/MyAgent";
 import { DEFAULT_CHAT_MODEL, isChatModel, isGoogleChatModel } from "@/lib/ai/models";
+import { getConnectedToolkitSlugs } from "@/lib/composio";
 
 //  GET: Load chat history when user opens the agent
 export async function GET(req: NextRequest) {
@@ -74,19 +75,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { agentId, messages, timeZone, model: requestedModel } = await req.json();
+  const body = await req.json() as { agentId?: unknown; messages?: unknown; timeZone?: unknown; model?: unknown };
+  const { agentId, messages, timeZone, model: requestedModel } = body;
+  if (typeof agentId !== "string" || !agentId.trim()) {
+    return NextResponse.json({ error: "A valid agentId is required." }, { status: 400 });
+  }
   const model = requestedModel ?? DEFAULT_CHAT_MODEL;
   if (!Array.isArray(messages)) {
     return NextResponse.json({ error: "Messages must be an array." }, { status: 400 });
   }
   const conversationMessages = messages.filter((message) => {
     if (!message || typeof message !== "object") return false;
-    const item = message as { text?: unknown; content?: unknown };
+    const item = message as { role?: unknown; text?: unknown; content?: unknown };
+    if (!["user", "assistant", "agent", "model"].includes(String(item.role))) return false;
     return (
       (typeof item.text === "string" && item.text.trim().length > 0) ||
       (typeof item.content === "string" && item.content.trim().length > 0)
     );
   });
+  if (conversationMessages.length === 0 || !conversationMessages.some((message) => (message as { role?: unknown }).role === "user")) {
+    return NextResponse.json({ error: "Send a message before asking the agent to respond." }, { status: 400 });
+  }
 
   // Load Agent info
   const [config] = await db
@@ -108,6 +117,12 @@ export async function POST(req: NextRequest) {
 
   // Load available tool list
   const catalog = await db.select().from(tools).where(eq(tools.isActive, true));
+  const allowedToolkits = catalog.map((toolkit) => toolkit.slug.toLowerCase());
+  const selectedToolkits = Array.isArray(config.tools)
+    ? config.tools.filter((toolkit): toolkit is string => typeof toolkit === "string")
+      .map((toolkit) => toolkit.toLowerCase())
+      .filter((slug) => allowedToolkits.includes(slug))
+    : [];
 
   const usesGoogle = isGoogleChatModel(model);
   if (usesGoogle && !process.env.GEMINI_API_KEY) {
@@ -125,16 +140,24 @@ export async function POST(req: NextRequest) {
 
   let agentResponse;
   try {
+    const enabledToolkits = process.env.COMPOSIO_API_KEY
+      ? await getConnectedToolkitSlugs(session.user.email, selectedToolkits)
+      : [];
     const agentParams = {
       agentName: config.name,
       instructions: config.description || "",
       messages: conversationMessages,
-      availableTools: catalog.map((t) => ({
-        slug: t.slug,
-        name: t.name,
-        description: t.description || "",
-      })),
-      timeZone,
+      enabledToolkits,
+      availableTools: enabledToolkits.map((slug) => {
+        const toolkit = catalog.find((entry) => entry.slug.toLowerCase() === slug.toLowerCase());
+        return {
+          slug,
+          name: toolkit?.name || slug,
+          description: toolkit?.description || "Connected Composio integration",
+        };
+      }),
+      userEmail: session.user.email,
+      timeZone: typeof timeZone === "string" ? timeZone : undefined,
       model,
     };
     agentResponse = usesGoogle

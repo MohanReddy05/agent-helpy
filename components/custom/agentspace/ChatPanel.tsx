@@ -33,7 +33,12 @@ export default function ChatPanel() {
   useEffect(() => {
     if (!agentId) return;
     const savedModel = window.localStorage.getItem(`helpy-chat-model:${agentId}`);
-    if (isChatModel(savedModel)) setSelectedModel(savedModel);
+    if (savedModel === "gemini-3.1-flash-lite" || savedModel === "gemini-3.5-flash") {
+      setSelectedModel("gemini-3.8-flash");
+      window.localStorage.setItem(`helpy-chat-model:${agentId}`, "gemini-3.8-flash");
+    } else if (isChatModel(savedModel)) {
+      setSelectedModel(savedModel);
+    }
   }, [agentId]);
 
   const handleModelChange = (model: ChatModel) => {
@@ -64,6 +69,12 @@ export default function ChatPanel() {
         }
       } catch (err) {
         console.error("Failed to fetch chat history:", err);
+        setMessages([{
+          id: "history-error",
+          role: "assistant",
+          text: "I couldn't load the saved conversation. You can still start a new message.",
+          time: nowLabel(),
+        }]);
       } finally {
         setIsLoading(false);
       }

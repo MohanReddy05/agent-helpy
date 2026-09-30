@@ -1,4 +1,11 @@
 import { inngest } from './client';
+import { and, eq, lte } from 'drizzle-orm';
+import { db } from '@/db';
+import { agentConfig, routine, routineExecution, tools } from '@/db/schema';
+import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
+import { executeOpenAIAgentChat } from '@/lib/openai/MyAgent';
+import { getConnectedToolkitSlugs } from '@/lib/composio';
+import { getNextRunAt, type RoutineSchedule } from '@/lib/routines';
 
 /**
  * Example 1: Event-driven Background Job
@@ -63,4 +70,82 @@ export const dailySyncScheduledJob = inngest.createFunction(
       summary: syncResult,
     };
   }
+);
+
+export const runDueAgentRoutines = inngest.createFunction(
+  { id: 'run-due-agent-routines', name: 'Run Due Agent Schedules', retries: 1 },
+  { cron: '* * * * *' },
+  async ({ step }) => {
+    const dueAt = new Date();
+    const dueRoutines = await step.run('find-due-routines', () =>
+      db.select().from(routine).where(and(eq(routine.isActive, true), lte(routine.nextRunAt, dueAt))),
+    );
+
+    for (const scheduled of dueRoutines) {
+      await step.run(`execute-routine-${scheduled.id}`, async () => {
+        const schedule = scheduled.schedule as RoutineSchedule;
+        const nextRunAt = schedule.frequency === 'once'
+          ? null
+          : getNextRunAt(schedule, scheduled.timeZone || 'UTC', new Date());
+        const [claimed] = await db.update(routine).set({
+          nextRunAt,
+          isActive: nextRunAt !== null,
+        }).where(and(
+          eq(routine.id, scheduled.id),
+          eq(routine.isActive, true),
+          lte(routine.nextRunAt, dueAt),
+        )).returning({ id: routine.id });
+        if (!claimed) return { skipped: true };
+
+        try {
+          const [agent] = await db.select().from(agentConfig).where(and(
+            eq(agentConfig.agentId, scheduled.agentId),
+            eq(agentConfig.userEmail, scheduled.userEmail),
+          ));
+          if (!agent) throw new Error('Agent configuration was not found.');
+          const catalog = await db.select().from(tools).where(eq(tools.isActive, true));
+          const agentTools = Array.isArray(agent.tools)
+            ? agent.tools.filter((slug): slug is string => typeof slug === 'string').map((slug) => slug.toLowerCase())
+            : [];
+          const requiredTools = Array.isArray(scheduled.requiredTools)
+            ? scheduled.requiredTools.filter((slug): slug is string => typeof slug === 'string').map((slug) => slug.toLowerCase())
+            : agentTools;
+          const allowed = requiredTools.filter((slug) => agentTools.includes(slug) && catalog.some((tool) => tool.slug.toLowerCase() === slug));
+          const connected = process.env.COMPOSIO_API_KEY
+            ? await getConnectedToolkitSlugs(scheduled.userEmail, allowed)
+            : [];
+          const response = await executeOpenAIAgentChat({
+            agentName: agent.name,
+            instructions: agent.description || '',
+            messages: [{
+              role: 'user',
+              text: `Run the scheduled task "${scheduled.name}". Goal: ${scheduled.goal}\nInstructions: ${scheduled.instructions || scheduled.goal}`,
+            }],
+            enabledToolkits: connected,
+            availableTools: connected.map((slug) => {
+              const match = catalog.find((tool) => tool.slug.toLowerCase() === slug);
+              return { slug, name: match?.name || slug, description: match?.description || '' };
+            }),
+            userEmail: scheduled.userEmail,
+            model: DEFAULT_CHAT_MODEL,
+          });
+          await db.insert(routineExecution).values({
+            routineId: scheduled.id,
+            status: 'completed',
+            result: response.content,
+          });
+          return { status: 'completed' };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Routine execution failed.';
+          await db.insert(routineExecution).values({
+            routineId: scheduled.id,
+            status: 'failed',
+            result: message,
+          });
+          return { status: 'failed', error: message };
+        }
+      });
+    }
+    return { processed: dueRoutines.length };
+  },
 );
