@@ -42,8 +42,8 @@ export default async function Home() {
             Build focused AI agents for the tasks that take up your day. Give each one the right tools, guidance, and a place to work with you.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link href="/sign-up" className="inline-flex items-center gap-2 rounded-xl bg-[#d7ff63] px-5 py-3.5 text-sm font-semibold text-[#151a10] shadow-[0_0_24px_rgba(215,255,99,0.13)] transition hover:-translate-y-0.5 hover:bg-[#e2ff8a]">Create your workspace <ArrowRight className="size-4" /></Link>
-            <Link href="/sign-in" className="rounded-xl px-4 py-3.5 text-sm font-medium text-[#a9b2a9] transition hover:bg-white/[0.05] hover:text-white">I already have an account</Link>
+            <Link href="/sign-up" className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#d7ff63] px-5 py-3.5 text-center text-sm font-semibold text-[#151a10] shadow-[0_0_24px_rgba(215,255,99,0.13)] transition hover:-translate-y-0.5 hover:bg-[#e2ff8a] sm:w-auto">Create your workspace <ArrowRight className="size-4" /></Link>
+            <Link href="/sign-in" className="w-full rounded-xl px-4 py-3.5 text-center text-sm font-medium text-[#a9b2a9] transition hover:bg-white/[0.05] hover:text-white sm:w-auto">I already have an account</Link>
           </div>
           <p className="mt-5 text-xs text-[#717c73]">A calmer way to get the repeatable work done.</p>
         </div>

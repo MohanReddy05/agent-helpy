@@ -103,7 +103,7 @@ function CreateAgent() {
 
         <form
           onSubmit={onClickCreateAgent}
-          className="themed-scrollbar max-h-[calc(100dvh-13rem)] overflow-y-auto overscroll-contain rounded-3xl border border-white/[0.1] bg-white/[0.035] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.24)] backdrop-blur-2xl sm:max-h-[calc(100dvh-14rem)] sm:p-8"
+          className="rounded-3xl border border-white/[0.1] bg-white/[0.035] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.24)] backdrop-blur-2xl sm:p-8"
         >
           {/* Avatar */}
           <section
@@ -215,11 +215,11 @@ function CreateAgent() {
           </div>
 
           {/* Buttons */}
-          <div className="mt-8 flex flex-col-reverse justify-end gap-3 border-t border-white/[0.08] pt-6 sm:flex-row">
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-white/[0.08] pt-6 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
-              className="border-white/[0.12] bg-white/[0.04] text-[#dce2da] hover:bg-white/[0.08] sm:min-w-28"
+              className="h-11 w-full border-white/[0.12] bg-white/[0.04] text-[#dce2da] hover:bg-white/[0.08] sm:h-10 sm:w-auto sm:min-w-28"
               onClick={() => router.push("/workspace")}
               disabled={isLoading}
             >
@@ -228,18 +228,18 @@ function CreateAgent() {
 
             <Button
               type="submit"
-              className="gap-2 bg-[#d7ff63] text-[#151a10] hover:bg-[#e2ff8a] sm:min-w-36"
+              className="h-11 w-full gap-2 bg-[#d7ff63] text-[#151a10] hover:bg-[#e2ff8a] sm:h-10 sm:w-auto sm:min-w-36"
               disabled={isLoading || !name.trim()}
             >
               {isLoading ? (
                 <>
                   <Loader className="size-4 animate-spin" />
-                  Creating...
+                  Creating agent...
                 </>
               ) : (
                 <>
                   <Check className="size-4" />
-                  Save Agent
+                  Create Agent
                 </>
               )}
             </Button>

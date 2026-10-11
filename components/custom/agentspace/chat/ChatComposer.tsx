@@ -14,7 +14,7 @@ export function ChatComposer({
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 }) {
   return (
-    <div className="border-t border-white/[0.08] bg-[#101513] p-4 sm:px-6">
+    <div className="border-t border-white/[0.08] bg-[#101513] px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:py-4">
       <div className="mx-auto flex max-w-4xl items-end gap-2 rounded-2xl border border-white/[0.1] bg-white/[0.035] p-2 shadow-sm transition-all focus-within:border-[#d7ff63]/50 focus-within:ring-4 focus-within:ring-[#d7ff63]/[0.08]">
         <textarea
           value={draft}

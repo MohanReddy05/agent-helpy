@@ -170,16 +170,18 @@ export function ScheduleContent({ agentId }: { agentId?: string }) {
         <h3 className="text-sm font-semibold text-[#e8ebe4]">Saved schedules</h3>
         {routines.map((item) => (
           <article key={item.id} className="rounded-xl border border-white/[0.09] bg-white/[0.025] p-3">
-            <div className="flex items-start gap-3">
+            <div className="flex flex-wrap items-start gap-3">
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-[#d7ff63]/15 bg-[#d7ff63]/[0.06] text-[#d7ff63]"><CalendarClock className="size-4" /></span>
-              <div className="min-w-0 flex-1"><p className="text-sm font-medium text-[#e8ebe4]">{item.name}</p><p className="mt-0.5 line-clamp-2 text-xs text-[#8c978e]">{item.goal}</p><p className="mt-2 flex items-center gap-1 text-[11px] text-[#838e85]"><Clock3 className="size-3" />{item.schedule.frequency} at {item.schedule.time}{item.nextRunAt ? ` · Next ${new Date(item.nextRunAt).toLocaleString()}` : ""}</p></div>
-              {item.schedule.calendarEventId ? (
-                <span title="Added to Google Calendar" className="mt-1 text-[#d7ff63]"><CalendarCheck2 className="size-4" /></span>
-              ) : (
-                <button type="button" disabled={busy} title="Add to Google Calendar" onClick={() => void syncToCalendar(item)} className="rounded-lg p-1.5 text-[#929d94] hover:bg-[#d7ff63]/[0.08] hover:text-[#d7ff63]"><CalendarClock className="size-4" /></button>
-              )}
-              <button type="button" disabled={busy} title={item.isActive ? "Pause schedule" : "Resume schedule"} onClick={() => void toggle(item)} className="rounded-lg p-1.5 text-[#929d94] hover:bg-white/[0.08] hover:text-[#e8ebe4]">{item.isActive ? <Pause className="size-4" /> : <Play className="size-4" />}</button>
-              <button type="button" disabled={busy} title="Delete schedule" onClick={() => void remove(item)} className="rounded-lg p-1.5 text-[#929d94] hover:bg-red-400/[0.08] hover:text-red-200"><Trash2 className="size-4" /></button>
+              <div className="min-w-0 flex-1 basis-[calc(100%_-_3rem)] sm:basis-auto"><p className="break-words text-sm font-medium text-[#e8ebe4]">{item.name}</p><p className="mt-0.5 line-clamp-2 text-xs text-[#8c978e]">{item.goal}</p><p className="mt-2 flex flex-wrap items-center gap-1 text-[11px] text-[#838e85]"><Clock3 className="size-3 shrink-0" />{item.schedule.frequency} at {item.schedule.time}{item.nextRunAt ? ` · Next ${new Date(item.nextRunAt).toLocaleString()}` : ""}</p></div>
+              <div className="ml-auto flex shrink-0 items-center gap-1">
+                {item.schedule.calendarEventId ? (
+                  <span title="Added to Google Calendar" className="flex size-9 items-center justify-center text-[#d7ff63]"><CalendarCheck2 className="size-4" /></span>
+                ) : (
+                  <button type="button" disabled={busy} title="Add to Google Calendar" aria-label="Add to Google Calendar" onClick={() => void syncToCalendar(item)} className="flex size-9 items-center justify-center rounded-lg text-[#929d94] hover:bg-[#d7ff63]/[0.08] hover:text-[#d7ff63]"><CalendarClock className="size-4" /></button>
+                )}
+                <button type="button" disabled={busy} title={item.isActive ? "Pause schedule" : "Resume schedule"} aria-label={item.isActive ? "Pause schedule" : "Resume schedule"} onClick={() => void toggle(item)} className="flex size-9 items-center justify-center rounded-lg text-[#929d94] hover:bg-white/[0.08] hover:text-[#e8ebe4]">{item.isActive ? <Pause className="size-4" /> : <Play className="size-4" />}</button>
+                <button type="button" disabled={busy} title="Delete schedule" aria-label="Delete schedule" onClick={() => void remove(item)} className="flex size-9 items-center justify-center rounded-lg text-[#929d94] hover:bg-red-400/[0.08] hover:text-red-200"><Trash2 className="size-4" /></button>
+              </div>
             </div>
           </article>
         ))}

@@ -125,14 +125,14 @@ export default function WorkspacePage() {
           </div>
           <Link
             href="/workspace/create-agent"
-            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-[#e5ff9e]/30 bg-[#d7ff63] px-4 text-sm font-semibold text-[#151a10] shadow-[0_0_24px_rgba(215,255,99,0.12)] transition hover:bg-[#e2ff8a]"
+            className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-xl border border-[#e5ff9e]/30 bg-[#d7ff63] px-4 text-sm font-semibold text-[#151a10] shadow-[0_0_24px_rgba(215,255,99,0.12)] transition hover:bg-[#e2ff8a] sm:w-auto"
           >
             <Plus className="size-4" /> Create an agent
           </Link>
         </header>
 
         <section
-          className="grid grid-cols-1 gap-3 py-6 sm:grid-cols-3"
+          className="grid grid-cols-1 gap-3 py-6 xl:grid-cols-3"
           aria-label="Workspace summary"
         >
           <SummaryCard
@@ -249,7 +249,7 @@ export default function WorkspacePage() {
             )}
           </section>
 
-          <div className="grid min-w-0 gap-5 sm:grid-cols-2 xl:grid-cols-1">
+          <div className="grid min-w-0 gap-5 lg:grid-cols-2 xl:grid-cols-1">
             <section
               className="min-w-0 rounded-2xl border border-white/[0.1] bg-white/[0.035] p-4 shadow-[0_16px_45px_rgba(0,0,0,0.16)] backdrop-blur-xl sm:p-5"
               aria-labelledby="schedule-heading"

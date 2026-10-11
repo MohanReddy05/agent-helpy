@@ -82,27 +82,27 @@ export function ToolDirectory({ agentId }: { agentId?: string }) {
       {error && <p role="alert" className="rounded-xl border border-red-300/20 bg-red-400/[0.08] px-3 py-2 text-xs text-red-200">{error}</p>}
       <div className="themed-scrollbar max-h-[min(65vh,680px)] space-y-2 overflow-y-auto overscroll-contain pr-2">
         {filteredTools.map((tool) => (
-          <article key={tool.slug} className="flex items-center gap-3 rounded-xl border border-white/[0.09] bg-white/[0.025] p-3 transition hover:border-white/[0.14]">
+          <article key={tool.slug} className="flex flex-col items-stretch gap-3 rounded-xl border border-white/[0.09] bg-white/[0.025] p-3 transition hover:border-white/[0.14] sm:flex-row sm:items-center">
             <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.04] text-[#c6d0c5]">
               {tool.logo ? <img src={tool.logo} alt="" className="size-7 object-contain" /> : <Wrench className="size-5" />}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="flex items-center gap-2 text-sm font-medium text-[#e8ebe4]">
-                {tool.name}
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-[#e8ebe4]">
+                <span className="min-w-0 break-words">{tool.name}</span>
                 {tool.connected && <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#d7ff63]"><Check className="size-3" /> Connected</span>}
               </span>
               <span className="mt-0.5 line-clamp-2 block text-xs leading-4 text-[#8c978e]">{tool.description}</span>
               {tool.category && <span className="mt-1 block text-[10px] text-[#707b72]">{tool.category}</span>}
             </span>
             {agentId && tool.connected ? (
-              <button type="button" disabled={busy === tool.slug} onClick={() => void toggleAgentTool(tool)} className={`flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium ${tool.enabled ? "bg-[#d7ff63] text-[#151a10] hover:bg-[#e2ff8a]" : "border border-white/[0.12] bg-white/[0.04] text-[#b9c2b8] hover:bg-white/[0.08]"}`}>
+              <button type="button" disabled={busy === tool.slug} onClick={() => void toggleAgentTool(tool)} className={`flex h-9 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg px-2.5 text-xs font-medium sm:h-8 sm:w-auto ${tool.enabled ? "bg-[#d7ff63] text-[#151a10] hover:bg-[#e2ff8a]" : "border border-white/[0.12] bg-white/[0.04] text-[#b9c2b8] hover:bg-white/[0.08]"}`}>
                 {busy === tool.slug ? <Loader2 className="size-3.5 animate-spin" /> : tool.enabled ? <Check className="size-3.5" /> : null}
                 {tool.enabled ? "Remove" : "Add to agent"}
               </button>
             ) : tool.connected ? (
               <span className="shrink-0 rounded-lg border border-[#d7ff63]/15 bg-[#d7ff63]/[0.06] px-2.5 py-2 text-xs font-medium text-[#d7ff63]">{agentId ? "Shared with agents" : "Connected"}</span>
             ) : (
-              <button type="button" disabled={busy === tool.slug} onClick={() => void connect(tool)} className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-2.5 text-xs font-medium text-[#c5cdc4] hover:bg-white/[0.08]">
+              <button type="button" disabled={busy === tool.slug} onClick={() => void connect(tool)} className="flex h-9 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-2.5 text-xs font-medium text-[#c5cdc4] hover:bg-white/[0.08] sm:h-8 sm:w-auto">
                 {busy === tool.slug ? <Loader2 className="size-3.5 animate-spin" /> : <PlugZap className="size-3.5" />} Connect
               </button>
             )}

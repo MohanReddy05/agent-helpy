@@ -118,7 +118,7 @@ export default function AgentConfigPanel({ onHide }: { onHide: () => void }) {
   };
 
   return (
-    <aside className="fixed inset-y-0 right-0 z-40 flex h-dvh w-[min(92vw,480px)] shrink-0 flex-col border-l border-white/[0.1] bg-[#111715] text-[#e8ebe4] shadow-2xl shadow-black/40 xl:relative xl:inset-auto xl:z-auto xl:h-full xl:w-[min(480px,40vw)] xl:shadow-none">
+    <aside className="fixed inset-x-0 top-14 z-40 flex h-[calc(100dvh-3.5rem)] w-full shrink-0 flex-col border-l border-white/[0.1] bg-[#111715] text-[#e8ebe4] shadow-2xl shadow-black/40 md:inset-y-0 md:left-auto md:h-dvh md:w-[min(92vw,480px)] xl:relative xl:inset-auto xl:z-auto xl:h-full xl:w-[min(480px,40vw)] xl:shadow-none">
       <div className="flex h-[76px] shrink-0 items-center justify-between gap-3 border-b border-white/[0.09] bg-[#141b17] px-4 sm:px-5">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-[#edf0e9]">
@@ -226,7 +226,7 @@ export default function AgentConfigPanel({ onHide }: { onHide: () => void }) {
                 }`}
               >
                 <Icon className="size-4 shrink-0" />
-                <span className="hidden truncate md:inline">{label}</span>
+                <span className="hidden truncate sm:inline">{label}</span>
               </button>
             ))}
           </div>

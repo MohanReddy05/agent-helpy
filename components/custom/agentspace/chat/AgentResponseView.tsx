@@ -114,9 +114,9 @@ export function AgentResponseView({
           {suggestedTools.map((tool) => (
             <div
               key={tool.slug}
-              className="flex items-center justify-between rounded-xl border border-white/[0.1] bg-white/[0.035] p-3 shadow-sm"
+              className="flex flex-col items-stretch gap-3 rounded-xl border border-white/[0.1] bg-white/[0.035] p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between"
             >
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-[#edf0e9]">
                   {tool.name}
                 </p>
@@ -124,7 +124,7 @@ export function AgentResponseView({
               </div>
               <button
                 onClick={() => handleConnectTool(tool.slug)}
-                className="flex items-center gap-1 rounded-lg border border-white/[0.12] bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-[#d7ff63] shadow-sm transition hover:bg-white/[0.09]"
+                className="flex h-9 w-full items-center justify-center gap-1 rounded-lg border border-white/[0.12] bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-[#d7ff63] shadow-sm transition hover:bg-white/[0.09] sm:h-auto sm:w-auto"
               >
                 Connect <ExternalLink className="h-3 w-3" />
               </button>
@@ -147,7 +147,7 @@ export function AgentResponseView({
           </h4>
           <p className="mt-1 text-xs text-[#a5afa5]">{routine.goal}</p>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             <span className="rounded-lg border border-white/[0.1] bg-black/10 px-2.5 py-1.5 text-xs text-[#c8d0c6]">
               Frequency: {routine.schedule.frequency}
             </span>

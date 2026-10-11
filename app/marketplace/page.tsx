@@ -12,7 +12,7 @@ export default async function MarketplacePage() {
 
   return (
     <AgentProvider>
-      <div className="app-canvas flex min-h-screen">
+      <div className="app-canvas flex min-h-screen flex-col md:flex-row">
         <AppSidebar />
         <main className="min-w-0 flex-1 overflow-y-auto px-5 py-8 text-[#f1f3ed] sm:px-8 sm:py-10 xl:px-10">
           <div className="mx-auto max-w-5xl">

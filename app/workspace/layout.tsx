@@ -11,7 +11,7 @@ async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <AgentProvider>
-      <div className="flex min-h-screen bg-[#0b0f0e]">
+      <div className="flex min-h-screen flex-col bg-[#0b0f0e] md:flex-row">
         <AppSidebar />
         <main className="min-w-0 flex-1">{children}</main>
       </div>

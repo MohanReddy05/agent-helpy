@@ -49,7 +49,7 @@ export function ChatHeader({
             aria-label="Chat model"
             value={selectedModel}
             onChange={(event) => onModelChange(event.target.value as ChatModel)}
-            className="w-[72px] sm:w-[180px] [&_select]:border-white/10 [&_select]:bg-[#151b17] [&_select]:text-[#e8ebe4] [&_svg]:text-[#89948b]"
+            className="w-[112px] sm:w-[180px] [&_select]:border-white/10 [&_select]:bg-[#151b17] [&_select]:text-[#e8ebe4] [&_svg]:text-[#89948b]"
           >
             {CHAT_MODELS.map((model) => (
               <NativeSelectOption key={model.id} value={model.id}>
