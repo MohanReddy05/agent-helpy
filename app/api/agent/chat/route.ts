@@ -74,6 +74,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const userEmail = session.user.email;
 
   const body = await req.json() as { agentId?: unknown; messages?: unknown; timeZone?: unknown; model?: unknown };
   const { agentId, messages, timeZone, model: requestedModel } = body;
@@ -104,7 +105,7 @@ export async function POST(req: NextRequest) {
     .where(
       and(
         eq(agentConfig.agentId, agentId),
-        eq(agentConfig.userEmail, session.user.email),
+        eq(agentConfig.userEmail, userEmail),
       ),
     );
 
@@ -141,7 +142,7 @@ export async function POST(req: NextRequest) {
   let agentResponse;
   try {
     const enabledToolkits = process.env.COMPOSIO_API_KEY
-      ? await getConnectedToolkitSlugs(session.user.email, selectedToolkits)
+      ? await getConnectedToolkitSlugs(userEmail, selectedToolkits)
       : [];
     const agentParams = {
       agentName: config.name,
@@ -156,7 +157,7 @@ export async function POST(req: NextRequest) {
           description: toolkit?.description || "Connected Composio integration",
         };
       }),
-      userEmail: session.user.email,
+      userEmail: userEmail,
       timeZone: typeof timeZone === "string" ? timeZone : undefined,
       model,
     };
@@ -214,7 +215,7 @@ export async function POST(req: NextRequest) {
   // constraint on (agent_id, user_email) in existing databases.
   await db.transaction(async (tx) => {
     await tx.execute(
-      sql`select pg_advisory_xact_lock(hashtext(${agentId}), hashtext(${session.user.email}))`,
+      sql`select pg_advisory_xact_lock(hashtext(${agentId}), hashtext(${userEmail}))`,
     );
 
     const existingRows = await tx
@@ -223,7 +224,7 @@ export async function POST(req: NextRequest) {
       .where(
         and(
           eq(agentChatHistory.agentId, agentId),
-          eq(agentChatHistory.userEmail, session.user.email),
+          eq(agentChatHistory.userEmail, userEmail),
         ),
       )
       .returning({ id: agentChatHistory.id });
@@ -231,7 +232,7 @@ export async function POST(req: NextRequest) {
     if (existingRows.length === 0) {
       await tx.insert(agentChatHistory).values({
         agentId,
-        userEmail: session.user.email,
+        userEmail: userEmail,
         messages: updatedMessages,
       });
     }

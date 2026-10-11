@@ -1,10 +1,10 @@
-import { agent } from "@/db";
+import type { Agent } from "@/db";
 import { createContext } from "react";
 
 type AgentConfigContextType = {
-  agentConfig: agent | null | undefined;
+  agentConfig: Agent | null | undefined;
   setAgentConfig: React.Dispatch<
-    React.SetStateAction<agent | null | undefined>
+    React.SetStateAction<Agent | null | undefined>
   >;
 };
 

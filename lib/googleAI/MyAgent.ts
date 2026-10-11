@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, type FunctionDeclaration } from "@google/genai";
 import { AgentResponseSchema, type AgentResponse } from "./AgentResponseSchema";
 import { buildGoogleAgentInstructions } from "./PromptBuilder";
 import { createComposioSession } from "@/lib/composio";
@@ -42,7 +42,7 @@ export async function executeGoogleAgentChat(params: {
   const composioTools = session ? await session.tools() : [];
   const geminiTools = JSON.parse(
     JSON.stringify(composioTools, (key, value) => key === "examples" ? undefined : value),
-  ) as typeof composioTools;
+  ) as FunctionDeclaration[];
 
   // UPDATED: Format message history safely for Gemini SDK
   const contents = messages.map((m) => ({

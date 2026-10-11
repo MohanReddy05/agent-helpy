@@ -9,7 +9,7 @@ export function ChatMessages({
   agentId,
 }: {
   messages: ChatMessage[];
-  bottomRef: React.RefObject<HTMLDivElement>;
+  bottomRef: React.RefObject<HTMLDivElement | null>;
   isLoading: boolean;
   agentId: string;
 }) {

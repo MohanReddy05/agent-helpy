@@ -3,17 +3,17 @@
 import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
-import type { agent } from "@/db";
+import type { Agent } from "@/db";
 
-const AgentContext = createContext<agent[]>([]);
+const AgentContext = createContext<Agent[]>([]);
 
 export function AgentProvider({ children }: { children: React.ReactNode }) {
-  const [agents, setAgents] = useState<agent[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const pathname = usePathname();
   useEffect(() => {
     let mounted = true;
     axios
-      .get<agent[]>("/api/agent")
+      .get<Agent[]>("/api/agent")
       .then(({ data }) => {
         if (mounted) setAgents(data);
       })

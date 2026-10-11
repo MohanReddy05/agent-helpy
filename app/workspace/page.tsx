@@ -13,7 +13,6 @@ import {
   Search,
   Wrench,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAgents } from "@/components/custom/workspace/AgentProvider";
 
 type RoutineSummary = {
@@ -124,14 +123,12 @@ export default function WorkspacePage() {
               A clear view of your agents, connected tools, and scheduled work.
             </p>
           </div>
-          <Button
-            asChild
-            className="h-10 shrink-0 rounded-xl border border-[#e5ff9e]/30 bg-[#d7ff63] px-4 font-semibold text-[#151a10] shadow-[0_0_24px_rgba(215,255,99,0.12)] transition hover:bg-[#e2ff8a]"
+          <Link
+            href="/workspace/create-agent"
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-[#e5ff9e]/30 bg-[#d7ff63] px-4 text-sm font-semibold text-[#151a10] shadow-[0_0_24px_rgba(215,255,99,0.12)] transition hover:bg-[#e2ff8a]"
           >
-            <Link href="/workspace/create-agent">
-              <Plus className="size-4" /> Create an agent
-            </Link>
-          </Button>
+            <Plus className="size-4" /> Create an agent
+          </Link>
         </header>
 
         <section
@@ -241,14 +238,12 @@ export default function WorkspacePage() {
                     : "Create an agent to give a recurring task its own tools and instructions."}
                 </p>
                 {!agents.length && (
-                  <Button
-                    asChild
-                    className="mt-4 rounded-xl bg-[#d7ff63] font-semibold text-[#151a10] hover:bg-[#e2ff8a]"
+                  <Link
+                    href="/workspace/create-agent"
+                    className="mt-4 inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-[#d7ff63] px-3 text-sm font-semibold text-[#151a10] transition hover:bg-[#e2ff8a]"
                   >
-                    <Link href="/workspace/create-agent">
-                      <Plus className="size-4" /> Create your first agent
-                    </Link>
-                  </Button>
+                    <Plus className="size-4" /> Create your first agent
+                  </Link>
                 )}
               </div>
             )}

@@ -190,24 +190,25 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  const userEmail = session.user.email;
   const agentId = req.nextUrl.searchParams.get("agentId");
   if (!agentId) return NextResponse.json({ message: "agentId is required." }, { status: 400 });
 
   const [agent] = await db.select({ agentId: agentConfig.agentId }).from(agentConfig).where(and(
     eq(agentConfig.agentId, agentId),
-    eq(agentConfig.userEmail, session.user.email),
+    eq(agentConfig.userEmail, userEmail),
   ));
   if (!agent) return NextResponse.json({ message: "Agent not found" }, { status: 404 });
 
   const schedules = await db.select({ schedule: routine.schedule }).from(routine).where(and(
     eq(routine.agentId, agentId),
-    eq(routine.userEmail, session.user.email),
+    eq(routine.userEmail, userEmail),
   ));
   try {
     for (const item of schedules) {
       const savedSchedule = item.schedule as RoutineSchedule | null;
       if (savedSchedule?.calendarEventId) {
-        const result = await deleteRoutineCalendarEvent(session.user.email, savedSchedule.calendarEventId);
+        const result = await deleteRoutineCalendarEvent(userEmail, savedSchedule.calendarEventId);
         if (result.status !== "deleted") {
           return NextResponse.json({ message: "Reconnect Google Calendar before deleting this agent." }, { status: 409 });
         }
@@ -220,15 +221,15 @@ export async function DELETE(req: NextRequest) {
 
   await db.transaction(async (tx) => {
     const scheduleRows = await tx.select({ id: routine.id }).from(routine).where(
-      and(eq(routine.agentId, agentId), eq(routine.userEmail, session.user.email)),
+      and(eq(routine.agentId, agentId), eq(routine.userEmail, userEmail)),
     );
     const scheduleIds = scheduleRows.map((item) => item.id);
     if (scheduleIds.length) {
       await tx.delete(routineExecution).where(inArray(routineExecution.routineId, scheduleIds));
     }
-    await tx.delete(routine).where(and(eq(routine.agentId, agentId), eq(routine.userEmail, session.user.email)));
-    await tx.delete(agentChatHistory).where(and(eq(agentChatHistory.agentId, agentId), eq(agentChatHistory.userEmail, session.user.email)));
-    await tx.delete(agentConfig).where(and(eq(agentConfig.agentId, agentId), eq(agentConfig.userEmail, session.user.email)));
+    await tx.delete(routine).where(and(eq(routine.agentId, agentId), eq(routine.userEmail, userEmail)));
+    await tx.delete(agentChatHistory).where(and(eq(agentChatHistory.agentId, agentId), eq(agentChatHistory.userEmail, userEmail)));
+    await tx.delete(agentConfig).where(and(eq(agentConfig.agentId, agentId), eq(agentConfig.userEmail, userEmail)));
   });
   return NextResponse.json({ success: true });
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useContext, useEffect, useRef, useState } from "react";
+import { DEFAULT_CHAT_MODEL, type ChatModel } from "@/lib/ai/models";
 import { AgentConfigContext } from "@/context/AgentConfigContext";
 import { ChatComposer } from "./chat/ChatComposer";
 import { ChatHeader } from "./chat/ChatHeader";
@@ -40,6 +41,7 @@ function nowLabel() {
 export default function ChatPanelOld() {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [draft, setDraft] = useState("");
+  const [selectedModel, setSelectedModel] = useState<ChatModel>(DEFAULT_CHAT_MODEL);
   const bottomRef = useRef<HTMLDivElement>(null);
   const context = useContext(AgentConfigContext);
   const agentConfig = context?.agentConfig;
@@ -60,7 +62,7 @@ export default function ChatPanelOld() {
 
   return (
     <section className="flex min-w-0 flex-1 flex-col bg-white">
-      <ChatHeader agentConfig={agentConfig} />
+      <ChatHeader agentConfig={agentConfig} selectedModel={selectedModel} onModelChange={setSelectedModel} />
       {/* <ChatMessages messages={messages} bottomRef={bottomRef} />
       <ChatComposer
         draft={draft}

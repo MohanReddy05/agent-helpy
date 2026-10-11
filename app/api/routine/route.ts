@@ -88,8 +88,9 @@ export async function POST(request: NextRequest) {
     tools?: unknown;
     timeZone?: string;
   };
+  const scheduleTime = body.schedule?.time;
   if (!body.agentId || !body.name?.trim() || !body.goal?.trim() || !body.schedule ||
-    !validFrequency(body.schedule.frequency) || !/^\d{2}:\d{2}$/.test(body.schedule.time || "")) {
+    !validFrequency(body.schedule.frequency) || !scheduleTime || !/^\d{2}:\d{2}$/.test(scheduleTime)) {
     return NextResponse.json({ error: "A name, task, valid frequency, and time are required." }, { status: 400 });
   }
   const [agent] = await db.select().from(agentConfig).where(
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
   if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
   const schedule: RoutineSchedule = {
     frequency: body.schedule.frequency,
-    time: body.schedule.time,
+    time: scheduleTime,
     days: Array.isArray(body.schedule.days) ? body.schedule.days.filter((day): day is string => typeof day === "string") : [],
   };
   if (schedule.frequency === "weekly" && schedule.days?.length === 0) {
