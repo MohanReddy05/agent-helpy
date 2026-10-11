@@ -15,6 +15,12 @@ export default function AgentSpace() {
   const [configurationVisible, setConfigurationVisible] = useState(true);
 
   useEffect(() => {
+    if (!window.matchMedia("(min-width: 1280px)").matches) {
+      setConfigurationVisible(false);
+    }
+  }, []);
+
+  useEffect(() => {
     const loadAgent = async () => {
       const result = await axios.get<Agent>(
         `/api/agent?agentId=${params.agentId}`,
@@ -27,11 +33,17 @@ export default function AgentSpace() {
 
   return (
     <AgentConfigContext.Provider value={{ agentConfig, setAgentConfig }}>
-      <div className="flex h-screen min-h-[620px] min-w-0 bg-slate-50">
-        <ChatPanel />
+      <div className="app-canvas relative flex h-dvh min-h-[560px] min-w-0 overflow-hidden">
         {configurationVisible && (
-          <AgentConfigPanel onHide={() => setConfigurationVisible(false)} />
+          <button
+            type="button"
+            aria-label="Close agent configuration"
+            onClick={() => setConfigurationVisible(false)}
+            className="fixed inset-0 z-30 bg-black/55 backdrop-blur-sm xl:hidden"
+          />
         )}
+        <ChatPanel onShowConfiguration={configurationVisible ? undefined : () => setConfigurationVisible(true)} />
+        {configurationVisible && <AgentConfigPanel onHide={() => setConfigurationVisible(false)} />}
       </div>
     </AgentConfigContext.Provider>
   );

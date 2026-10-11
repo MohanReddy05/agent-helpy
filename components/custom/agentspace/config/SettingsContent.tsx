@@ -50,24 +50,24 @@ export function SettingsContent({ onDirty }: { onDirty: () => void }) {
               value={agentDescription}
               onChange={handleDescriptionChange}
               placeholder="Describe what this agent does..."
-              className="min-h-[82px] resize-none bg-white text-sm leading-5"
+              className="min-h-[110px] resize-y border-white/[0.1] bg-white/[0.035] text-sm leading-5 text-[#e8ebe4] placeholder:text-[#68736b] focus-visible:border-[#d7ff63]/40 focus-visible:ring-[#d7ff63]/10"
             />
           </div>
         </div>
       </section>
 
-      <div className="rounded-xl border border-indigo-100 bg-indigo-50/70 p-4">
+      <div className="rounded-2xl border border-[#d7ff63]/15 bg-[#d7ff63]/[0.045] p-4">
         <div className="flex gap-3">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#d7ff63]/[0.08] text-[#d7ff63]">
             <Sparkles className="size-4" />
           </span>
 
           <div>
-            <p className="text-xs font-semibold text-slate-800">
-              Make Orbit your own
+            <p className="text-xs font-semibold text-[#e8ebe4]">
+              Shape this agent
             </p>
 
-            <p className="mt-1 text-xs leading-5 text-slate-600">
+            <p className="mt-1 text-xs leading-5 text-[#929d94]">
               A little context goes a long way. Add specific details to get more
               helpful responses.
             </p>

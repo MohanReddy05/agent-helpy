@@ -2,6 +2,7 @@ export type RoutineSchedule = {
   frequency: "once" | "daily" | "weekly" | "monthly";
   time: string;
   days?: string[];
+  calendarEventId?: string;
 };
 
 const weekdayKeys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];

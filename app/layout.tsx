@@ -16,7 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, padding: 0 }}>
+      <body
+        className="min-h-screen antialiased"
+        style={{ margin: 0, padding: 0 }}
+      >
         <AuthProvider>{children}</AuthProvider>
         <Toaster />
       </body>

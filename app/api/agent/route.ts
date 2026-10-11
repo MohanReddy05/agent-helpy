@@ -5,6 +5,7 @@ import { agentConfig, db, tools as toolCatalog } from "@/db";
 import { desc, eq, and, inArray } from "drizzle-orm";
 import { agentChatHistory, routine, routineExecution } from "@/db/schema";
 import { getNextRunAt, type RoutineSchedule } from "@/lib/routines";
+import { createRoutineCalendarEvent, deleteRoutineCalendarEvent } from "@/lib/googleCalendar";
 
 export async function POST(req: NextRequest) {
   try {
@@ -127,13 +128,60 @@ export async function PATCH(req: NextRequest) {
       eq(routine.agentId, body.agentId),
       eq(routine.userEmail, session.user.email),
     ));
+    if (body.paused) {
+      try {
+        for (const item of schedules) {
+          const savedSchedule = item.schedule as RoutineSchedule | null;
+          if (savedSchedule?.calendarEventId) {
+            const result = await deleteRoutineCalendarEvent(session.user.email, savedSchedule.calendarEventId);
+            if (result.status !== "deleted") {
+              return NextResponse.json({ message: "Reconnect Google Calendar before pausing this agent." }, { status: 409 });
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Google Calendar event removal failed while pausing agent:", error);
+        return NextResponse.json({ message: "Could not remove the calendar events. The agent was not paused." }, { status: 502 });
+      }
+    }
+    const calendarSync: Array<{ routineId: number; status: string }> = [];
     for (const item of schedules) {
+      const savedSchedule = item.schedule as RoutineSchedule | null;
+      if (!savedSchedule) continue;
       const nextRunAt = body.paused
         ? item.nextRunAt
-        : getNextRunAt(item.schedule as RoutineSchedule, item.timeZone || "UTC");
-      await db.update(routine).set({ isActive: !body.paused && nextRunAt !== null, nextRunAt }).where(eq(routine.id, item.id));
+        : getNextRunAt(savedSchedule, item.timeZone || "UTC");
+      const schedule = body.paused
+        ? Object.fromEntries(Object.entries(savedSchedule).filter(([key]) => key !== "calendarEventId")) as RoutineSchedule
+        : savedSchedule;
+      const [updated] = await db.update(routine).set({
+        isActive: !body.paused && nextRunAt !== null,
+        nextRunAt,
+        schedule,
+      }).where(eq(routine.id, item.id)).returning();
+      if (!body.paused && updated && nextRunAt) {
+        try {
+          const result = await createRoutineCalendarEvent({
+            userEmail: session.user.email,
+            agentName: agent.name,
+            name: item.name,
+            goal: item.goal,
+            schedule,
+            nextRunAt,
+            timeZone: item.timeZone || "UTC",
+          });
+          if (result.status === "synced") {
+            const syncedSchedule = { ...schedule, calendarEventId: result.eventId };
+            await db.update(routine).set({ schedule: syncedSchedule }).where(eq(routine.id, item.id));
+          }
+          calendarSync.push({ routineId: item.id, status: result.status });
+        } catch (error) {
+          console.error("Google Calendar routine sync failed while resuming agent:", error);
+          calendarSync.push({ routineId: item.id, status: "failed" });
+        }
+      }
     }
-    return NextResponse.json({ paused: schedules.length > 0 && body.paused, scheduleCount: schedules.length });
+    return NextResponse.json({ paused: schedules.length > 0 && body.paused, scheduleCount: schedules.length, calendarSync });
   }
 
   return NextResponse.json({ message: "Unsupported action." }, { status: 400 });
@@ -150,6 +198,25 @@ export async function DELETE(req: NextRequest) {
     eq(agentConfig.userEmail, session.user.email),
   ));
   if (!agent) return NextResponse.json({ message: "Agent not found" }, { status: 404 });
+
+  const schedules = await db.select({ schedule: routine.schedule }).from(routine).where(and(
+    eq(routine.agentId, agentId),
+    eq(routine.userEmail, session.user.email),
+  ));
+  try {
+    for (const item of schedules) {
+      const savedSchedule = item.schedule as RoutineSchedule | null;
+      if (savedSchedule?.calendarEventId) {
+        const result = await deleteRoutineCalendarEvent(session.user.email, savedSchedule.calendarEventId);
+        if (result.status !== "deleted") {
+          return NextResponse.json({ message: "Reconnect Google Calendar before deleting this agent." }, { status: 409 });
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Google Calendar event removal failed while deleting agent:", error);
+    return NextResponse.json({ message: "Could not remove the calendar events. The agent was not deleted." }, { status: 502 });
+  }
 
   await db.transaction(async (tx) => {
     const scheduleRows = await tx.select({ id: routine.id }).from(routine).where(

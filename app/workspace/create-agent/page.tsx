@@ -87,30 +87,30 @@ function CreateAgent() {
   }
 
   return (
-    <div className="min-h-screen px-5 py-10 sm:px-8 sm:py-12">
-      <div className="mx-auto max-w-3xl">
+    <div className="app-canvas min-h-screen px-5 py-8 text-[#f1f3ed] sm:px-8 sm:py-12">
+      <div className="relative mx-auto max-w-3xl">
         <header className="mb-8">
-          <p className="mb-2 text-sm font-medium text-indigo-600">Workspace</p>
+          <p className="mb-2 text-sm font-medium text-[#d7ff63]">Workspace / Setup</p>
 
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+          <h1 className="text-3xl font-medium tracking-[-0.04em] text-[#f1f3ed]">
             Create New Agent
           </h1>
 
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#9ba59d]">
             Set up an AI agent with its own instructions and selected tools.
           </p>
         </header>
 
         <form
           onSubmit={onClickCreateAgent}
-          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8"
+          className="themed-scrollbar max-h-[calc(100dvh-13rem)] overflow-y-auto overscroll-contain rounded-3xl border border-white/[0.1] bg-white/[0.035] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.24)] backdrop-blur-2xl sm:max-h-[calc(100dvh-14rem)] sm:p-8"
         >
           {/* Avatar */}
           <section
-            className="mb-8 flex flex-col items-center border-b border-slate-100 pb-8"
+            className="mb-8 flex flex-col items-center border-b border-white/[0.08] pb-8"
             aria-label="Agent avatar"
           >
-            <div className="flex size-20 items-center justify-center overflow-hidden rounded-full bg-slate-100">
+            <div className="flex size-20 items-center justify-center overflow-hidden rounded-2xl border border-white/[0.1] bg-white/[0.05] shadow-[0_0_35px_rgba(215,255,99,0.07)]">
               <img
                 key={avatarImage}
                 src={avatarImage}
@@ -119,7 +119,7 @@ function CreateAgent() {
               />
             </div>
 
-            <p className="mt-4 text-sm font-medium text-slate-800">
+            <p className="mt-4 text-sm font-medium text-[#e8ebe4]">
               Choose an agent avatar
             </p>
 
@@ -129,7 +129,7 @@ function CreateAgent() {
               type="button"
               size="sm"
               variant="outline"
-              className="mt-3 gap-2"
+              className="mt-3 gap-2 border-white/[0.12] bg-white/[0.04] text-[#dce2da] hover:bg-white/[0.08] hover:text-white"
               onClick={shuffleAvatar}
               disabled={isLoading}
             >
@@ -144,7 +144,7 @@ function CreateAgent() {
             <div className="space-y-2">
               <label
                 htmlFor="agent-name"
-                className="text-sm font-medium text-slate-800"
+                className="text-sm font-medium text-[#dce2da]"
               >
                 Agent Name
               </label>
@@ -167,13 +167,13 @@ function CreateAgent() {
               <div className="flex items-center justify-between gap-3">
                 <label
                   htmlFor="agent-description"
-                  className="text-sm font-medium text-slate-800"
+                  className="text-sm font-medium text-[#dce2da]"
                 >
                   Agent Description{" "}
-                  <span className="font-normal text-slate-400">(optional)</span>
+                  <span className="font-normal text-[#778279]">(optional)</span>
                 </label>
 
-                <span className="text-xs tabular-nums text-slate-400">
+                <span className="text-xs tabular-nums text-[#778279]">
                   {description.length}/1000
                 </span>
               </div>
@@ -191,20 +191,20 @@ function CreateAgent() {
             </div>
 
             <fieldset className="space-y-3">
-              <legend className="text-sm font-medium text-slate-800">Agent tools <span className="font-normal text-slate-400">(optional)</span></legend>
-              <p className="text-xs leading-5 text-slate-500">Choose which connected apps this agent can use. These choices are separate for each agent and do not change your marketplace connections.</p>
+              <legend className="text-sm font-medium text-[#dce2da]">Agent tools <span className="font-normal text-[#778279]">(optional)</span></legend>
+              <p className="text-xs leading-5 text-[#89948b]">Choose which connected apps this agent can use. These choices are separate for each agent and do not change your marketplace connections.</p>
               {toolkits.length === 0 ? (
-                <p className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">No tools are available. Add tools to the catalog and connect them in the marketplace.</p>
+                <p className="rounded-xl border border-white/[0.09] bg-white/[0.025] p-3 text-xs text-[#89948b]">No tools are available. Add tools to the catalog and connect them in the marketplace.</p>
               ) : (
                 <div className="grid gap-2 sm:grid-cols-2">
                   {toolkits.map((tool) => {
                     const selected = selectedTools.includes(tool.slug);
                     return (
-                      <label key={tool.slug} className={`flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 ${selected ? "border-indigo-300 bg-indigo-50/60" : "border-slate-200 bg-white"}`}>
-                        <input type="checkbox" checked={selected} onChange={() => setSelectedTools((current) => selected ? current.filter((slug) => slug !== tool.slug) : [...current, tool.slug])} className="mt-0.5 accent-indigo-600" />
+                      <label key={tool.slug} className={`flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 transition-colors ${selected ? "border-[#d7ff63]/30 bg-[#d7ff63]/[0.07]" : "border-white/[0.09] bg-white/[0.025] hover:bg-white/[0.05]"}`}>
+                        <input type="checkbox" checked={selected} onChange={() => setSelectedTools((current) => selected ? current.filter((slug) => slug !== tool.slug) : [...current, tool.slug])} className="mt-0.5 accent-[#d7ff63]" />
                         <span className="min-w-0">
-                          <span className="block text-xs font-medium text-slate-800">{tool.name}</span>
-                          <span className={`mt-0.5 block text-[10px] ${tool.connected ? "text-emerald-700" : "text-slate-500"}`}>{tool.connected ? "Connected in marketplace" : "Connect later from Marketplace or Tools"}</span>
+                          <span className="block text-xs font-medium text-[#e8ebe4]">{tool.name}</span>
+                          <span className={`mt-0.5 block text-[10px] ${tool.connected ? "text-[#d7ff63]" : "text-[#89948b]"}`}>{tool.connected ? "Connected in marketplace" : "Connect later from Marketplace or Tools"}</span>
                         </span>
                       </label>
                     );
@@ -215,11 +215,11 @@ function CreateAgent() {
           </div>
 
           {/* Buttons */}
-          <div className="mt-8 flex flex-col-reverse justify-end gap-3 border-t border-slate-100 pt-6 sm:flex-row">
+          <div className="mt-8 flex flex-col-reverse justify-end gap-3 border-t border-white/[0.08] pt-6 sm:flex-row">
             <Button
               type="button"
               variant="outline"
-              className="sm:min-w-28"
+              className="border-white/[0.12] bg-white/[0.04] text-[#dce2da] hover:bg-white/[0.08] sm:min-w-28"
               onClick={() => router.push("/workspace")}
               disabled={isLoading}
             >
@@ -228,7 +228,7 @@ function CreateAgent() {
 
             <Button
               type="submit"
-              className="gap-2 text-white sm:min-w-36"
+              className="gap-2 bg-[#d7ff63] text-[#151a10] hover:bg-[#e2ff8a] sm:min-w-36"
               disabled={isLoading || !name.trim()}
             >
               {isLoading ? (

@@ -17,7 +17,7 @@ function nowLabel() {
   });
 }
 
-export default function ChatPanel() {
+export default function ChatPanel({ onShowConfiguration }: { onShowConfiguration?: () => void }) {
   const params = useParams();
   const agentId = params.agentId as string;
 
@@ -149,11 +149,12 @@ export default function ChatPanel() {
   };
 
   return (
-    <section className="flex h-full min-w-0 flex-1 flex-col bg-white border-r">
+    <section className="flex h-full min-w-0 flex-1 flex-col bg-transparent">
       <ChatHeader
         agentConfig={agentConfig}
         selectedModel={selectedModel}
         onModelChange={handleModelChange}
+        onShowConfiguration={onShowConfiguration}
       />
 
       <ChatMessages

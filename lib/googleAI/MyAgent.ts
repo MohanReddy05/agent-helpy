@@ -161,11 +161,16 @@ export async function executeGoogleAgentChat(params: {
     try {
       let conversation: GeminiRequestContents = [...contents];
       response = await generate(conversation);
-      for (let step = 0; step < 8 && session; step++) {
-        const calls = response.candidates?.flatMap((candidate) =>
-          candidate.content?.parts?.flatMap((part) => part.functionCall ? [part.functionCall] : []) ?? [],
-        ) ?? [];
+      const maxToolSteps = 12;
+      for (let step = 0; step < maxToolSteps; step++) {
+        const calls = response.functionCalls ?? [];
         if (!calls.length) break;
+        if (!session) {
+          throw new Error(
+            "Gemini requested a tool call, but no connected tool session is available.",
+          );
+        }
+
         const toolResponses = await Promise.all(calls.map(async (call) => {
           if (!call.name) throw new Error("Gemini returned a tool call without a name.");
           const toolResult = await session.execute(call.name, call.args ?? {});
@@ -178,12 +183,24 @@ export async function executeGoogleAgentChat(params: {
           } catch {
             output = { result: String(toolResult) };
           }
-          return { functionResponse: { name: call.name, response: output } };
+          return {
+            functionResponse: {
+              ...(call.id ? { id: call.id } : {}),
+              name: call.name,
+              response: { output },
+            },
+          };
         }));
         const modelContent = response.candidates?.[0]?.content;
         if (modelContent) conversation = [...conversation, modelContent];
         conversation = [...conversation, { role: "user", parts: toolResponses }];
         response = await generate(conversation);
+      }
+
+      if (response.functionCalls?.length) {
+        throw new Error(
+          `Gemini requested more tool calls than the ${maxToolSteps}-step limit allows.`,
+        );
       }
     } catch (error: unknown) {
       lastError = error;
@@ -199,7 +216,13 @@ export async function executeGoogleAgentChat(params: {
       continue;
     }
 
-    const responseText = response.text?.trim();
+    // Read only text parts here. GenerateContentResponse.text logs a warning
+    // when a candidate also contains function calls or other non-text parts.
+    const responseText = response.candidates?.[0]?.content?.parts
+      ?.filter((part) => typeof part.text === "string" && !part.thought)
+      .map((part) => part.text)
+      .join("")
+      .trim();
     if (!responseText) {
       const finishReason = response.candidates?.[0]?.finishReason;
       const blockReason = response.promptFeedback?.blockReason;

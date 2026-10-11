@@ -6,9 +6,9 @@ type SectionHeadingProps = {
 export function SectionHeading({ title, detail }: SectionHeadingProps) {
   return (
     <div className="mb-4">
-      <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+      <h3 className="text-sm font-semibold text-[#e8ebe4]">{title}</h3>
       {detail && (
-        <p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p>
+        <p className="mt-1 text-xs leading-5 text-[#8c978e]">{detail}</p>
       )}
     </div>
   );

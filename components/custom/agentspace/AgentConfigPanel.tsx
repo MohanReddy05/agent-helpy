@@ -8,6 +8,7 @@ import {
   Settings2,
   Shuffle,
   Wrench,
+  PanelRightClose,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -117,28 +118,24 @@ export default function AgentConfigPanel({ onHide }: { onHide: () => void }) {
   };
 
   return (
-    <aside className="flex h-full w-[440px] shrink-0 flex-col border-l border-slate-200 bg-slate-50/70 xl:w-[480px]">
-      <div className="flex h-[76px] shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-5">
+    <aside className="fixed inset-y-0 right-0 z-40 flex h-dvh w-[min(92vw,480px)] shrink-0 flex-col border-l border-white/[0.1] bg-[#111715] text-[#e8ebe4] shadow-2xl shadow-black/40 xl:relative xl:inset-auto xl:z-auto xl:h-full xl:w-[min(480px,40vw)] xl:shadow-none">
+      <div className="flex h-[76px] shrink-0 items-center justify-between gap-3 border-b border-white/[0.09] bg-[#141b17] px-4 sm:px-5">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-900">
+          <p className="text-sm font-semibold text-[#edf0e9]">
             Agent Configuration
           </p>
 
-          <p className="mt-0.5 truncate text-xs text-slate-500">
+          <p className="mt-0.5 truncate text-xs text-[#89948b]">
             Personalize how {agentName} works
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5">
           <Button
             size="sm"
             disabled={!isDirty && !justSaved}
             onClick={handleSave}
-            className={`h-9 rounded-lg px-4 text-xs font-medium transition-colors ${
-              justSaved
-                ? "bg-emerald-600 hover:bg-emerald-600"
-                : "bg-indigo-600 hover:bg-indigo-700"
-            }`}
+            className="h-9 rounded-lg bg-[#d7ff63] px-4 text-xs font-semibold text-[#151a10] transition-colors hover:bg-[#e2ff8a]"
           >
             {justSaved ? (
               <span className="flex items-center gap-1.5">
@@ -149,35 +146,38 @@ export default function AgentConfigPanel({ onHide }: { onHide: () => void }) {
               "Save"
             )}
           </Button>
+          <Button type="button" variant="ghost" size="icon" onClick={onHide} className="size-9 text-[#9ba59d] hover:bg-white/[0.07] hover:text-white" aria-label="Close agent configuration">
+            <PanelRightClose className="size-4" />
+          </Button>
         </div>
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
-        <section className="border-b border-slate-200 bg-white px-6 py-5">
-          <div className="flex items-end gap-3">
+        <section className="border-b border-white/[0.08] bg-white/[0.02] px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex items-end gap-2.5 sm:gap-3">
             <div className="relative shrink-0">
               {agentAvatar ? (
                 <img
                   key={agentAvatar}
                   src={agentAvatar}
                   alt={agentName}
-                  className="size-[58px] shrink-0 rounded-2xl border border-slate-200 object-cover"
+                  className="size-12 shrink-0 rounded-xl border border-white/[0.1] object-cover sm:size-[58px] sm:rounded-2xl"
                 />
               ) : (
-                <Avatar className="size-[58px] shrink-0 rounded-2xl bg-indigo-50 text-indigo-700">
-                  <AvatarFallback className="rounded-2xl bg-indigo-50 text-indigo-700">
+                <Avatar className="size-12 shrink-0 rounded-xl border border-white/[0.1] bg-white/[0.04] text-[#d7ff63] sm:size-[58px] sm:rounded-2xl">
+                  <AvatarFallback className="rounded-xl bg-transparent text-[#d7ff63] sm:rounded-2xl">
                     <Bot className="size-7" />
                   </AvatarFallback>
                 </Avatar>
               )}
 
-              <span className="absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white bg-emerald-500" />
+              <span className="absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-[#111715] bg-[#d7ff63] shadow-[0_0_8px_#d7ff63]" />
             </div>
 
             <div className="min-w-0 flex-1">
               <Label
                 htmlFor="agent-name"
-                className="mb-1.5 block text-xs text-slate-500"
+                className="mb-1.5 block text-xs text-[#89948b]"
               >
                 Agent name
               </Label>
@@ -186,13 +186,14 @@ export default function AgentConfigPanel({ onHide }: { onHide: () => void }) {
                 id="agent-name"
                 value={agentName}
                 onChange={(event) => handleNameChange(event.target.value)}
-                className="h-9 border-slate-200 bg-white text-sm font-medium"
+                className="h-9 border-white/[0.1] bg-white/[0.04] text-sm font-medium text-[#edf0e9] placeholder:text-[#68736b] focus-visible:border-[#d7ff63]/40 focus-visible:ring-[#d7ff63]/10"
               />
             </div>
 
             <Button
               variant="outline"
               size="icon"
+              className="shrink-0 border-white/[0.1] bg-white/[0.04] text-[#b8c2b8] hover:bg-white/[0.08] hover:text-white"
               aria-label="Shuffle avatar"
               title="Shuffle avatar"
               onClick={shuffleAvatar}
@@ -202,11 +203,11 @@ export default function AgentConfigPanel({ onHide }: { onHide: () => void }) {
           </div>
         </section>
 
-        <div className="px-6 pt-5">
+        <div className="px-4 pt-4 sm:px-6 sm:pt-5">
           <div
             role="tablist"
             aria-label="Agent configuration sections"
-            className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1"
+            className="flex items-center gap-1 rounded-xl border border-white/[0.1] bg-white/[0.035] p-1"
           >
             {tabs.map(({ id, label, icon: Icon }) => (
               <button
@@ -216,15 +217,16 @@ export default function AgentConfigPanel({ onHide }: { onHide: () => void }) {
                 id={`tab-${id}`}
                 aria-controls={`panel-${id}`}
                 aria-selected={activeTab === id}
+                title={label}
                 onClick={() => setActiveTab(id)}
-                className={`flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-medium transition-colors ${
+                className={`flex h-10 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-1.5 text-xs font-medium transition-colors ${
                   activeTab === id
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                    ? "bg-[#d7ff63] text-[#151a10] shadow-sm"
+                    : "text-[#89948b] hover:bg-white/[0.07] hover:text-[#e8ebe4]"
                 }`}
               >
                 <Icon className="size-4 shrink-0" />
-                <span className="hidden truncate sm:inline">{label}</span>
+                <span className="hidden truncate md:inline">{label}</span>
               </button>
             ))}
           </div>

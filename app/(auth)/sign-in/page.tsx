@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, Suspense, useEffect } from 'react';
+import { useState, Suspense, useEffect } from 'react';
+import { authStyles as styles } from '@/components/custom/auth/authStyles';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -32,6 +33,10 @@ function SignInContent() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
+        <Link href="/" style={styles.brand}>
+          <span style={styles.brandMark}>H</span>
+          <span>Helpy</span>
+        </Link>
         <div style={styles.header}>
           <Link href="/" style={styles.badge}>
             ← Back to Home
@@ -96,132 +101,3 @@ export default function SignInPage() {
     </Suspense>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f8fafc',
-    color: '#0f172a',
-    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    padding: '1.5rem',
-    boxSizing: 'border-box',
-  },
-  loadingContainer: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f8fafc',
-    color: '#64748b',
-    fontFamily: 'system-ui, sans-serif',
-  },
-  card: {
-    width: '100%',
-    maxWidth: '420px',
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
-    borderRadius: '16px',
-    padding: '2.5rem',
-    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)',
-  },
-  header: {
-    textAlign: 'center',
-    marginBottom: '2rem',
-  },
-  badge: {
-    display: 'inline-block',
-    fontSize: '0.8rem',
-    fontWeight: 500,
-    color: '#64748b',
-    textDecoration: 'none',
-    marginBottom: '1.25rem',
-    padding: '0.35rem 0.85rem',
-    borderRadius: '9999px',
-    backgroundColor: '#f1f5f9',
-    border: '1px solid #e2e8f0',
-  },
-  title: {
-    fontSize: '1.75rem',
-    fontWeight: 700,
-    letterSpacing: '-0.025em',
-    margin: '0 0 0.5rem 0',
-    color: '#0f172a',
-  },
-  subtitle: {
-    fontSize: '0.875rem',
-    color: '#64748b',
-    lineHeight: 1.5,
-    margin: 0,
-  },
-  errorAlert: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    padding: '0.75rem 1rem',
-    borderRadius: '8px',
-    backgroundColor: '#fef2f2',
-    border: '1px solid #fecaca',
-    color: '#dc2626',
-    fontSize: '0.875rem',
-    marginBottom: '1.5rem',
-  },
-  oauthGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-    marginBottom: '1.5rem',
-  },
-  googleButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '0.75rem',
-    width: '100%',
-    padding: '0.85rem 1rem',
-    borderRadius: '10px',
-    backgroundColor: '#ffffff',
-    color: '#1e293b',
-    border: '1px solid #cbd5e1',
-    fontSize: '0.925rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'background-color 0.2s, border-color 0.2s',
-  },
-  githubButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '0.75rem',
-    width: '100%',
-    padding: '0.85rem 1rem',
-    borderRadius: '10px',
-    backgroundColor: '#0f172a',
-    color: '#ffffff',
-    border: '1px solid #0f172a',
-    fontSize: '0.925rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
-  },
-  oauthIcon: {
-    width: '20px',
-    height: '20px',
-  },
-  footer: {
-    marginTop: '1.5rem',
-    textAlign: 'center',
-  },
-  footerText: {
-    fontSize: '0.875rem',
-    color: '#64748b',
-    margin: 0,
-  },
-  footerLink: {
-    color: '#2563eb',
-    textDecoration: 'none',
-    fontWeight: 600,
-  },
-};

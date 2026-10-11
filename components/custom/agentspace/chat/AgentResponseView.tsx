@@ -2,7 +2,7 @@
 
 import { Calendar, CheckCircle2, ExternalLink } from "lucide-react";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AgentResponse } from "@/lib/types";
 
 export function AgentResponseView({
@@ -15,7 +15,48 @@ export function AgentResponseView({
   const { type, routine, suggestedTools } = response;
   const [savingRoutine, setSavingRoutine] = useState(false);
   const [routineSaved, setRoutineSaved] = useState(false);
+  const [calendarSynced, setCalendarSynced] = useState(false);
+  const [checkingRoutine, setCheckingRoutine] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [calendarNotice, setCalendarNotice] = useState("");
+
+  useEffect(() => {
+    if (type !== "routine" || !routine) return;
+    let cancelled = false;
+    const loadSavedState = async () => {
+      setCheckingRoutine(true);
+      try {
+        const result = await axios.get("/api/routine", { params: { agentId } });
+        const saved = (result.data.routines ?? []).find((item: {
+          name?: string;
+          goal?: string;
+          instructions?: string | null;
+          schedule?: { frequency?: string; time?: string; days?: string[]; calendarEventId?: string } | null;
+          requiredTools?: string[] | null;
+        }) => {
+          const savedDays = [...(item.schedule?.days ?? [])].sort();
+          const proposedDays = [...(routine.schedule.days ?? [])].sort();
+          return item.name === routine.name &&
+            item.goal === routine.goal &&
+            item.schedule?.frequency === routine.schedule.frequency &&
+            item.schedule?.time === routine.schedule.time &&
+            savedDays.join(",") === proposedDays.join(",");
+        });
+        if (!cancelled) {
+          setRoutineSaved(Boolean(saved));
+          setCalendarSynced(Boolean(saved?.schedule?.calendarEventId));
+        }
+      } catch {
+        // Keep the confirmation available when saved state cannot be checked.
+      } finally {
+        if (!cancelled) setCheckingRoutine(false);
+      }
+    };
+    void loadSavedState();
+    return () => {
+      cancelled = true;
+    };
+  }, [agentId, routine, type]);
 
   const handleConnectTool = async (slug: string) => {
     try {
@@ -32,16 +73,29 @@ export function AgentResponseView({
   };
 
   const handleCreateRoutine = async () => {
-    if (!routine || savingRoutine || routineSaved) return;
+    if (!routine || savingRoutine || (routineSaved && calendarSynced)) return;
     setSavingRoutine(true);
     setActionError("");
     try {
-      await axios.post("/api/routine", {
+      const result = await axios.post("/api/routine", {
         agentId,
         ...routine,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
       setRoutineSaved(true);
+      const sync = result.data.calendarSync;
+      setCalendarSynced(sync?.status === "synced");
+      setCalendarNotice(
+        sync?.status === "synced"
+          ? "This schedule is on Google Calendar."
+          : sync?.status === "not_connected"
+          ? "Schedule saved. Connect Google Calendar in Marketplace to add it to your calendar."
+          : sync?.status === "failed"
+          ? `Schedule saved, but Calendar sync failed: ${sync.message}`
+          : sync?.status === "not_configured"
+          ? "Schedule saved, but Google Calendar sync is not configured on this server."
+          : "Schedule saved.",
+      );
     } catch (err) {
       console.error("Failed to create routine", err);
       setActionError(axios.isAxiosError(err) ? err.response?.data?.error ?? "Could not save this schedule." : "Could not save this schedule.");
@@ -52,24 +106,25 @@ export function AgentResponseView({
 
   return (
     <div className="mt-3 flex flex-col gap-3">
-      {actionError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-700">{actionError}</p>}
+      {actionError && <p role="alert" className="rounded-xl border border-red-300/20 bg-red-400/[0.08] p-2.5 text-xs text-red-200">{actionError}</p>}
+      {calendarNotice && <p role="status" aria-live="polite" className="rounded-xl border border-[#d7ff63]/15 bg-[#d7ff63]/[0.05] p-2.5 text-xs text-[#c9d6ae]">{calendarNotice}</p>}
       {/* Tool Suggestion Card */}
       {suggestedTools && suggestedTools.length > 0 && (
         <div className="flex flex-col gap-2">
           {suggestedTools.map((tool) => (
             <div
               key={tool.slug}
-              className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-3"
+              className="flex items-center justify-between rounded-xl border border-white/[0.1] bg-white/[0.035] p-3 shadow-sm"
             >
               <div>
-                <p className="text-sm font-medium text-slate-900">
+                <p className="text-sm font-medium text-[#edf0e9]">
                   {tool.name}
                 </p>
-                <p className="text-xs text-slate-500">{tool.reason}</p>
+                <p className="text-xs text-[#929d94]">{tool.reason}</p>
               </div>
               <button
                 onClick={() => handleConnectTool(tool.slug)}
-                className="flex items-center gap-1 rounded-md bg-white border px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 shadow-sm"
+                className="flex items-center gap-1 rounded-lg border border-white/[0.12] bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-[#d7ff63] shadow-sm transition hover:bg-white/[0.09]"
               >
                 Connect <ExternalLink className="h-3 w-3" />
               </button>
@@ -80,34 +135,34 @@ export function AgentResponseView({
 
       {/* Routine Confirmation Card */}
       {type === "routine" && routine && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <div className="mb-3 flex items-center gap-2 text-blue-700">
+        <div className="rounded-2xl border border-[#d7ff63]/20 bg-[#d7ff63]/[0.055] p-4 shadow-sm">
+          <div className="mb-3 flex items-center gap-2 text-[#d7ff63]">
             <Calendar className="h-4 w-4" />
             <span className="text-xs font-bold uppercase tracking-wider">
-              Proposed Schedule
+              {routineSaved ? "Schedule already set" : "Proposed Schedule"}
             </span>
           </div>
-          <h4 className="text-sm font-semibold text-slate-900">
+          <h4 className="text-sm font-semibold text-[#edf0e9]">
             {routine.name}
           </h4>
-          <p className="mt-1 text-xs text-slate-600">{routine.goal}</p>
+          <p className="mt-1 text-xs text-[#a5afa5]">{routine.goal}</p>
 
           <div className="mt-3 flex gap-2">
-            <span className="rounded bg-white border border-blue-100 px-2 py-1 text-xs text-slate-700">
+            <span className="rounded-lg border border-white/[0.1] bg-black/10 px-2.5 py-1.5 text-xs text-[#c8d0c6]">
               Frequency: {routine.schedule.frequency}
             </span>
-            <span className="rounded bg-white border border-blue-100 px-2 py-1 text-xs text-slate-700">
+            <span className="rounded-lg border border-white/[0.1] bg-black/10 px-2.5 py-1.5 text-xs text-[#c8d0c6]">
               Time: {routine.schedule.time}
             </span>
           </div>
 
           <button
             onClick={() => void handleCreateRoutine()}
-            disabled={savingRoutine || routineSaved}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={savingRoutine || checkingRoutine || (routineSaved && calendarSynced)}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#d7ff63] px-4 py-2.5 text-xs font-semibold text-[#151a10] shadow-sm transition hover:bg-[#e2ff8a] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <CheckCircle2 className="h-4 w-4" />
-            {routineSaved ? "Schedule saved" : savingRoutine ? "Saving schedule…" : "Confirm & Schedule Routine"}
+            {calendarSynced ? "Added to Google Calendar" : checkingRoutine ? "Checking schedule…" : savingRoutine ? "Saving schedule…" : routineSaved ? "Add to Google Calendar" : "Confirm & Schedule Routine"}
           </button>
         </div>
       )}

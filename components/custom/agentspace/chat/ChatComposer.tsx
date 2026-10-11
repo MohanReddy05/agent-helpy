@@ -14,20 +14,20 @@ export function ChatComposer({
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 }) {
   return (
-    <div className="border-t bg-white p-4">
-      <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+    <div className="border-t border-white/[0.08] bg-[#101513] p-4 sm:px-6">
+      <div className="mx-auto flex max-w-4xl items-end gap-2 rounded-2xl border border-white/[0.1] bg-white/[0.035] p-2 shadow-sm transition-all focus-within:border-[#d7ff63]/50 focus-within:ring-4 focus-within:ring-[#d7ff63]/[0.08]">
         <textarea
           value={draft}
           onChange={(e) => onDraftChange(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder="Ask your agent to automate something..."
-          className="max-h-32 min-h-[44px] w-full resize-none bg-transparent px-2 py-2.5 text-sm text-slate-900 focus:outline-none"
+          className="max-h-32 min-h-[44px] w-full resize-none bg-transparent px-2 py-2.5 text-sm text-[#f1f3ed] outline-none placeholder:text-[#758078] focus:outline-none"
           rows={1}
         />
         <button
           onClick={onSend}
           disabled={!canSend}
-          className="mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white disabled:bg-slate-300 transition-colors hover:bg-blue-700"
+          className="mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#d7ff63] text-[#151a10] shadow-[0_0_16px_rgba(215,255,99,0.1)] transition-colors hover:bg-[#e2ff8a] disabled:bg-[#59614e] disabled:text-[#a0a795]"
         >
           <SendHorizonal className="h-4 w-4" />
         </button>
